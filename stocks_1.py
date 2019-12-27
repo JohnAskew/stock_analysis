@@ -217,10 +217,8 @@ end = dt.datetime.today()           # format of today() = [yyyy, mm, dd] - list 
 #-----------------------------------#
 # Set up place to save spreadsheet
 #-----------------------------------#
-if not os.path.exists(myPath):      # The directory you are in NOW
-    os.makedirs(myPath)             # create a new dir below the dir your are in NOW
-os.chdir(myPath)                    # move into the newly created sub-dir
-subprocess.call(["python", dir_path + "/" + "stocks_build_datawarehouse.py"])
+               # move into the newly created sub-dir
+subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
 
 for subject in  ax1_subject:
     saveFile=('{}'.format(subject) + '.csv')    # The RESUlTS we are saving on a daily basis
@@ -300,6 +298,8 @@ ax3_similar_stock3.set_visible(False)
 ########################################################
 # Populate Data
 ########################################################
+os.chdir(myPath)
+print("Before crashing, the directory is:", os.getcwd())
 df = pd.read_csv((ax1_subject + '.csv'), parse_dates=True, index_col =0)
 
 df_ohlc = df['Adj_Close'].resample('10D').ohlc()
