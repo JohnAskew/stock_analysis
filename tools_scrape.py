@@ -56,11 +56,12 @@ class Analysis:
         hl_set = set()
         plot_cnt = 0
         for h in headline_results:
+            h = str(h).strip('<div><div class="BNeawe s3v9rd AP7Wnd"><span class="r0bn4c rQMQod">').replace('</span>', '').strip('</div></div').replace('</span><span class="r0bn4c rQMQod">','').replace('<span class="r0bn4c rQMQod">', '')
             hl_set.add(h)
 
         for h in hl_set:
             d = dict()
-            blob = TextBlob(h.get_text())
+            blob = TextBlob(h)
             d['sentiment'] = blob.sentiment.polarity / len(hl_set)
             d['subjectivity'] = blob.sentiment.subjectivity / len(hl_set)
             self.plot.append(d)
@@ -70,6 +71,6 @@ class Analysis:
         return self.sentiment, self.subjectivity, self.plot
 
 if __name__ == "__main__":
-    a = Analysis('EBAY')
+    a = Analysis('JCP')
     a.run()
     print(a.term,  '\tsubjectivity', str(a.subjectivity) + '\n', '\t\t\tsentiment' + ' -1 < ', a.sentiment, '< 1')
