@@ -81,6 +81,11 @@ try:
 except:
     os.system('pip install getpass')
     import getpass
+try:
+    import subprocess
+except:
+    os.system("pip install subprocess")
+    import subprocess
 import sys
 try:
     from datetime import datetime, timedelta
@@ -203,6 +208,7 @@ provider = 'yahoo'
 currPath = os.getcwd()              # Directory you are in NOW
 savePath = 'askew'                  # We will be creating this new sub-directory
 myPath = (currPath + '/' + savePath)# The full path of the new sub-dir
+dir_path = os.path.dirname(os.path.realpath(__file__))
 #-----------------------------------#
 # Grab Dates
 #-----------------------------------#
@@ -214,6 +220,7 @@ end = dt.datetime.today()           # format of today() = [yyyy, mm, dd] - list 
 if not os.path.exists(myPath):      # The directory you are in NOW
     os.makedirs(myPath)             # create a new dir below the dir your are in NOW
 os.chdir(myPath)                    # move into the newly created sub-dir
+subprocess.call(["python", dir_path + "/" + "stocks_build_datawarehouse.py"])
 
 for subject in  ax1_subject:
     saveFile=('{}'.format(subject) + '.csv')    # The RESUlTS we are saving on a daily basis
