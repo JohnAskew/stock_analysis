@@ -153,6 +153,7 @@ class StartPage(tk.Frame):
         e1_label = tk.Label(self,text="Enter Stock Symbol", font = ("Courier New", "10", "bold"))#.grid(row=0, column = 0)
         e1_label.pack(side = "top")
         e1.pack(side = "top")
+      
 
         button1 = ttk.Button(self, text = "Accept Choice", command = get_entryText)
 
@@ -165,6 +166,10 @@ class StartPage(tk.Frame):
         button3 = ttk.Button(self, text = "Generate Graph", command =  lambda: subprocess.call(["python", dir_path + "/" + "stocks_1.py", get_entryText() ]))#lambda: controller.show_frame(PageGenerateGraph))
 
         button3.pack()
+
+        e2_label = tk.Label(self, text = "--> First daily run takes \n4 minutes to build 500 \nstocks datawarehouse <--", font = ("Monospace, 10"))
+
+        e2_label.pack(side = 'top')
 
 
 #######################################
