@@ -41,7 +41,6 @@ class Analysis:
 
         try:
             self.term = get_symbol(self.term)
-            print("tool_scrape searching with", self.term)
         except Exception as e:
             print(e)
             sys.exit()
@@ -71,6 +70,6 @@ class Analysis:
         return self.sentiment, self.subjectivity, self.plot
 
 if __name__ == "__main__":
-    a = Analysis('JCP')
+    a = Analysis('AMZN')
     a.run()
-    print(a.term,  '\tsubjectivity', str(a.subjectivity) + '\n', '\t\t\tsentiment' + ' -1 < ', a.sentiment, '< 1')
+    #DEBUG print(a.term,  '\tsubjectivity', str(a.subjectivity) + '\n', '\t\t\tsentiment' + ' -1 < ', a.sentiment, '< 1')

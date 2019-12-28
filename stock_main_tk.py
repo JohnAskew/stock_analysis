@@ -1,5 +1,4 @@
 import os, sys
-#from stocks_1 import *
 try:
     import tkinter as tk
 except:
@@ -18,41 +17,55 @@ except:
     import subprocess
 
 stock = ""
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
 exchange = "S&P500"
+
 DatCounter = 9000
+
 programName = "sp500"
+
 dataPace = "1d"
 #######################################
 # F U N C T I O N S 
 #######################################
 def changeTimeFrame(tf):
+    
     global dataPace
+    
     global DatCounter
-
 
 #-------------------------------------#
 def popupmsg(msg):
 #-------------------------------------#
     popup = tk.Tk()
-
+    
     popup.wm_title("!")
+    
     label = ttk.Label(popup, text = msg)
+    
     label.pack(side = "top", fill = "x", pady = 10)
+    
     B1 = ttk.Button(popup, text = "Okay", command = popup.destroy())
+    
     B1.pack()
+    
     popup.mainloop()
-
 
 #-------------------------------------#
 def changeExchange(toWhat, pn):
 #-------------------------------------#
     global exchange
+    
     global DatCounter
+    
     global programName
 
     exchange = toWhat
+    
     programName = pn
+    
     DatCounter = 9000
 
 
@@ -65,42 +78,48 @@ class SeaofBTCapp(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
 
         tk.Tk.iconbitmap(self, default = "py.ico")
+    
         tk.Tk.wm_title(self, "Search Stock client")
 
         container = tk.Frame(self)
+    
         container.pack(side = "top", fill = "both", expand = True)
+    
         container.grid_rowconfigure(0, weight = 1)
+    
         container.grid_columnconfigure(0, weight = 1)
 
         menubar = tk.Menu(container)
+    
         filemenu = tk.Menu(menubar, tearoff = 0)
+    
         filemenu.add_command(label = "Save Settings", command = lambda: popupmsg("Not Supported Yet."))
+    
         filemenu.add_separator()
+    
         filemenu.add_command(label = "Exit", command = quit)
+    
         menubar.add_cascade(label = "File", menu = filemenu)
 
         exchangeChoice = tk.Menu(menubar, tearoff = 1)
+    
         exchangeChoice.add_command(label = 'S&P 500', command = lambda: changeExchange("SP500", "sp500"))
+    
         exchangeChoice.add_command(label = 'NYSE', command = lambda: changeExchange("NYSE", "nyse"))
+    
         menubar.add_cascade(label = "Exchange", menu = exchangeChoice)
 
         dataTF = tk.Menu(menubar, tearoff = 1)
+    
         dataTF.add_command(label = "Tick", command = lambda: changeTimeFrame('tick'))
+    
         dataTF.add_command(label = "1 week", command = lambda: changeTimeFrame('7d'))
+    
         dataTF.add_command(label = "1 Month", command = lambda: changeTimeFrame('30d'))
+    
         menubar.add_cascade(label = "TimeSpan", menu = dataTF)               
 
-
-
-
-
-
-
-
         tk.Tk.config(self, menu = menubar)
-
-
-
 
         self.frames = {}
 
@@ -134,27 +153,27 @@ class StartPage(tk.Frame):
         def get_entryText():
         #-------------------------------------#
             p = e1.get()
-            print(p)
+            
             return p
 
         label = tk.Label(self, text = "Search Stock Tool", font = ("Times", "24", "bold italic underline"))
         
-
         label.pack(padx = 10, pady = 0)
 
-
-        
-
         entryText = tk.StringVar(self)
+        
         entryText.set('GOOG')
+        
         e1 = tk.Entry(self, textvariable = entryText)
 
         e1.focus_set()
+        
         e1_label = tk.Label(self,text="Enter Stock Symbol", font = ("Courier New", "10", "bold"))#.grid(row=0, column = 0)
+        
         e1_label.pack(side = "top")
+        
         e1.pack(side = "top")
       
-
         button1 = ttk.Button(self, text = "Accept Choice", command = get_entryText)
 
         button1.pack(side = 'top')
@@ -229,18 +248,14 @@ class PageGenerateGraph(tk.Frame):
         button1.pack()
        
 
-
-
-
-
-
-
 #######################################
 # M A I N   L O G I C   S T A R T
 #######################################
 
 app = SeaofBTCapp()
+
 app.geometry("360x240")
+
 app.mainloop()
 
 

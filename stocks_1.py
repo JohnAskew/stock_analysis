@@ -1,10 +1,30 @@
 #! python3
 import os
+
+try:
+    from config import *
+except:
+    msg = "Unable to find config file. Using defaults"
+    
+    print(msg)
+    
+    movAvg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
+    
+    movAvg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
+    
+    macd_periods_long_term = 26
+    
+    macd_periods_short_term = 12
+    
+    expMA_periods = 9 
+
 from formulas import *
 from tools_scrape import *
 from tools_get_stock_corr import corr
+
 try:
     from tools_get_company import *
+
 except:
     print("#########################################")
     print("ERROR: unable to find tools_get_company.")
@@ -94,11 +114,13 @@ except:
     from datetime import datetime, timedelta
 import time
 
+from pandas.plotting import register_matplotlib_converters
+
 style.use('fivethirtyeight')
 
 plt.rcParams['axes.formatter.useoffset'] = False
 
-
+pd.plotting.register_matplotlib_converters()
 
 ########################################################
 # Functions (before Main Logic)
@@ -107,25 +129,41 @@ plt.rcParams['axes.formatter.useoffset'] = False
 def calc_rsi(prices, n=14):
 #-------------------------------------------------------#
     deltas = np.diff(prices)
+    
     seed = deltas[:n + 1]
+    
     up = seed[seed >= 0].sum()/n
+    
     down = -seed[seed < 0].sum()/n
+    
     rs = up/down
+    
     rsi = np.zeros_like(prices)
+    
     rsi[:n] = 100. - 100./(1. + rs)
 
     for i in range(n, len(prices)):
+    
         delta = deltas[i - 1]
+    
         if delta > 0:
+    
             upval = delta
+    
             downval = 0.
+    
         else:
+    
             upval = .0
+    
             downval = -delta
+    
         up   = (up   * (n - 1) + upval)   / n
+    
         down = (down * (n - 1) + downval) / n
 
         rs = up/down
+    
         rsi[i] = 100. - 100./(1. + rs)
 
     return rsi
@@ -133,6 +171,7 @@ def calc_rsi(prices, n=14):
 def moving_average(values, window):
 #-------------------------------------------------------#
     weights  = np.repeat(1.0, window) / window   #Numpy repeat - repeats items in array - "window" times
+    
     smas = np.convolve(values, weights, 'valid') #Numpy convolve - returns the discrete, linear convolution of 2 seq.
     #https://stackoverflow.com/questions/20036663/understanding-numpys-convolve
     return smas
@@ -140,42 +179,58 @@ def moving_average(values, window):
 def calc_ema(values,window):
 #-------------------------------------------------------#
     weights = np.exp(np.linspace(-1, 0., window))
+    
     weights /= weights.sum()
+    
     a = np.convolve(values, weights,  mode = 'full')[:len(values)]
+    
     a[:window] = a[window]
+    
     return a
 #-------------------------------------------------------#
 def calc_macd(x, slow=26, fast = 12):
 #-------------------------------------------------------#
     eMaSlow = calc_ema(x, slow)
+    
     eMaFast = calc_ema(x, fast)
+    
     return eMaSlow, eMaFast, eMaFast - eMaSlow
 #-------------------------------------------------------#
 def rotate_xaxis(owner):
 #-------------------------------------------------------#
     for label in owner.xaxis.get_ticklabels():
+    
         label.set_rotation(45)
+    
         label.set_fontsize(5.5)
 #-------------------------------------------------------#
 def set_labels(owner):
 #-------------------------------------------------------#
-    #owner.set_xlabel('Dates', fontsize=8, fontweight =2, color = 'b')
     owner.set_ylabel('Price', fontsize=8, fontweight =5, color = 'g')
 #-------------------------------------------------------#
 def hide_frame(owner):
 #-------------------------------------------------------#
+    
     owner.grid(False)
+    
     owner.xaxis.set_visible(False)
+    
     owner.yaxis.set_visible(False)
+    
     owner.set_xlabel(False)
 #-------------------------------------------------------#
 def set_spines(owner):
 #-------------------------------------------------------#
     owner.spines['left'].set_color('m')
+    
     owner.spines['left'].set_linewidth(1)
+    
     owner.spines['right'].set_visible(False) #color('m')
+    
     owner.spines['top'].set_color('m')
+    
     owner.spines['top'].set_linewidth(1)
+    
     owner.spines['bottom'].set_visible(False)
 #######################################
 # M A I N  L O G I C
@@ -184,68 +239,96 @@ def set_spines(owner):
 if __name__ == '__main__':
     
     if len(sys.argv) > 1:
+        
         if sys.argv[1]:
-            print('len(sys.argv)=', len(sys.argv))
+        
             ax1_subject = sys.argv[1]
+        
             ax2_sent_subject = ax1_subject
+        
         else:
+        
             ax1_subject = 'JCP'
+        
             ax2_sent_subject = ax1_subject
     else:
+        
         ax1_subject = 'JCP'
+        
         ax2_sent_subject = ax1_subject
 
-user = getpass.getuser()
-movAvg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
-movAvg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
-macd_periods_long_term = 26
-macd_periods_short_term = 12
-expMA_periods = 9 
+
+# movAvg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
+# movAvg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
+# macd_periods_long_term = 26
+# macd_periods_short_term = 12
+# expMA_periods = 9 
 #-----------------------------------#
 # Variables
 #-----------------------------------#
+user = getpass.getuser()
+
 provider = 'yahoo' 
+
 currPath = os.getcwd()              # Directory you are in NOW
+
 savePath = 'askew'                  # We will be creating this new sub-directory
+
 myPath = (currPath + '/' + savePath)# The full path of the new sub-dir
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 #-----------------------------------#
 # Grab Dates
 #-----------------------------------#
 start = ( dt.datetime.now() - dt.timedelta(days = 365) )       # Format is year, month, day
+
 end = dt.datetime.today()           # format of today() = [yyyy, mm, dd] - list of integers
 #-----------------------------------#
 # Set up place to save spreadsheet
 #-----------------------------------#
                # move into the newly created sub-dir
-subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
 
-for subject in  ax1_subject:
-    saveFile=('{}'.format(subject) + '.csv')    # The RESUlTS we are saving on a daily basis
-    if os.path.exists(saveFile): #If results (stock.csv) exists, chk creation time.
-        print('Already have {}'.format(subject), end = ' ') 
-        st = os.stat(saveFile)
-        if dt.date.fromtimestamp(st.st_mtime) != dt.date.today():
-            try:
-                print(" but updating data to bring current to today:" , end)
-                df = web.DataReader(subject, provider, start, end)
-                df.rename(columns={"Adj Close":'Adj_Close'}, inplace=True)
-                df['MA10'] = df['Adj_Close'].rolling(10).mean()
-                df['MA30'] = df['Adj_Close'].rolling(30).mean()
-                df.to_csv('{}.csv'.format(subject))
-            except:
-                print("Issue with updating ", subject, "skipping data extract")
-        else:
-            print(" and is current as of today:" , end)
-    else:
+try:
+
+    saveFile=(myPath + '/{}'.format(ax1_subject) + '.csv')    # The RESUlTS we are saving on a daily basis
+    
+    st = os.stat(saveFile)
+    
+    if os.path.exists(saveFile) and dt.date.fromtimestamp(st.st_mtime) == dt.date.today():
+        
+        pass
+except:
+    
+    try:
+        
+        subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
+        
         try:
-            df = web.DataReader(subject, provider, start, end)
-            df.rename(columns={"Adj Close":'Adj_Close'}, inplace=True)
-            df['MA10'] = df['Adj_Close'].rolling(10).mean()
-            df['MA30'] = df['Adj_Close'].rolling(30).mean()
-            df.to_csv('{}.csv'.format(subject))
+            if os.path.exists(saveFile) and dt.date.fromtimestamp(st.st_mtime) == dt.date.today():
+                
+                pass
+            
+            else:
+                msg = ("Unable to rebuild:", ax1_subject, "Aborting. Either BAD ticker or python pgm tools_build_datawarehouse.py is NOT in same directory?")
+                
+                print(msg)
+
+                sys.exit(0)
+
         except:
-            print("Issue with new file:", subject, "skipping data extract")
+           
+            msg = ("Unable to rebuild:", ax1_subject, "Aborting. Either BAD ticker or python pgm tools_build_datawarehouse.py is NOT in same directory?")
+                
+            print(msg)
+
+            sys.exit(0)
+    except:
+
+        msg = ("Unable to rebuild:", ax1_subject, "Aborting. Either BAD ticker or python pgm tools_build_datawarehouse.py is NOT in same directory?")
+
+        print(msg)
+
+        sys.exit(0)
 
 
 ########################################################
@@ -253,34 +336,56 @@ for subject in  ax1_subject:
 ## Odd numbers (ex. ax1_vol) are for stock 1. Even = stock 2.
 #########################################################
 plot_row = 18 + 122 #98
+
 plot_col = 20
+
 fig , ax  = plt.subplots(figsize=(19,7), dpi=110,frameon=False, facecolor='#FFFFFA', sharex = True, sharey = True) #Too Bad, I really liked this color, facecolor = '#FFFFFA')
+
 plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='lower'))
 
+
 ax1_year = plt.subplot2grid((plot_row,plot_col), (0,  0), rowspan = 10, colspan = 4)
+
 ax1_ohlc = plt.subplot2grid((plot_row,plot_col), (21, 0), rowspan = 10, colspan = 4, sharex = ax1_year, sharey = ax1_year)
+
 ax1_ma   = plt.subplot2grid((plot_row,plot_col), (42, 0), rowspan = 10, colspan = 4, sharex = ax1_year, sharey = ax1_year)
+
 ax1_rsi  = plt.subplot2grid((plot_row,plot_col), (64, 0), rowspan = 10, colspan = 4, sharex = ax1_year)
+
 ax1_macd = plt.subplot2grid((plot_row,plot_col), (86, 0), rowspan = 10, colspan = 4, sharex = ax1_year)
+
 ax1_vol  = plt.subplot2grid((plot_row,plot_col), (109,0), rowspan = 10, colspan = 4, sharex = ax1_year)
+
 ax1_tot  = plt.subplot2grid((plot_row,plot_col), (134,0), rowspan = 10, colspan = 2)
 
 
 ax_a    = plt.subplot2grid((plot_row,plot_col), (0,  6), rowspan = 12, colspan = 6)
+
 ax_b    = plt.subplot2grid((plot_row,plot_col), (12, 6), rowspan = 83, colspan = 6)
+
 ax_c    = plt.subplot2grid((plot_row,plot_col), (95, 6), rowspan = 20, colspan = 6)
+
 ax_d    = plt.subplot2grid((plot_row,plot_col), (115,6), rowspan = 40, colspan = 6)
 
+
 ax2_sent         = plt.subplot2grid((plot_row,plot_col), (0,  13), rowspan = 30, colspan = 3)
+
 ax2_sent_plots   = plt.subplot2grid((plot_row,plot_col), (50, 13), rowspan = 40, colspan = 3)
+
 ax_sent_chart = plt.subplot2grid((plot_row,plot_col), (110,13), rowspan = 60, colspan = 3)
 
+
 ax3_sim_stock1 = plt.subplot2grid((plot_row, plot_col), (0,  17), rowspan = 30, colspan = 20)
+
 ax3_sim_stock2 = plt.subplot2grid((plot_row, plot_col), (50 ,17), rowspan = 30, colspan = 20)
+
 ax3_sim_stock3 = plt.subplot2grid((plot_row, plot_col), (110,17), rowspan = 30, colspan = 20)
 
+
 ax3_sim_stock1.set_visible(False)
+
 ax3_sim_stock2.set_visible(False)
+
 ax3_sim_stock3.set_visible(False)
 ########################################################
 #      ####  #####    ###     ###  #   #      # 
@@ -293,64 +398,77 @@ ax3_sim_stock3.set_visible(False)
 # Populate Data
 ########################################################
 os.chdir(myPath)
-print("Before crashing, the directory is:", os.getcwd())
+
 df = pd.read_csv((ax1_subject + '.csv'), parse_dates=True, index_col =0)
 
 df_ohlc = df['Adj_Close'].resample('10D').ohlc()
 
-#FUTURE df_last = (len(df_ohlc) -1)
-#FUTURE df_start = int(round((df_last)/2) * 1.5)
-#FUTURE df_ohlc= df_ohlc[df_start:df_last]
 df.reset_index(inplace = True)      
 ########################################################
 #Define DATA and attributes
 ########################################################
 stock_entry = (df['Adj_Close'][0])               # Set marker of last years close.
-movAvg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
-movAvg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
-macd_periods_long_term = 26
-macd_periods_short_term = 12
-expMA_periods = 9 
+
 df.reset_index(inplace = True) 
-                  #Lose the date index so we can address it as a column
-#df_ohlc = df[["Date", "Open", "High", "Low", "Close"]]
 
-
-ax1_subject_future_date = []
-#df['MA10'] = moving_average(df['Adj_Close'], movAvg_window_days_short_term)
-#print(random(df))
 ma1 = moving_average(df['Adj_Close'], movAvg_window_days_short_term)
+
 ma2 = moving_average(df['Adj_Close'], movAvg_window_days_long_term)
+
 start = len(df['Date'][movAvg_window_days_long_term - 1:])
 ########################################################
 #Start Plotting
 ########################################################
 ax1_year.plot_date(df['Date'], df['Adj_Close'], '-', label='ADJ Closing Price', color = 'blue', linewidth = 1)
+
 ax1_year.plot([],[], linewidth = 2, label = 'Adj_Close yr ago' , color = 'k', alpha = 0.9)
+
 ax1_year.axhline(df['Adj_Close'][0], color = 'k', linewidth = 2)
+
 ax1_year.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] > stock_entry), facecolor='g', alpha=0.6)
+
 ax1_year.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] < stock_entry), facecolor='r', alpha=0.6)
+
 rotate_xaxis(ax1_year)
+
 ax1_year.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
 set_spines(ax1_year)
+
 ax1_year.tick_params(axis = 'x', colors = '#890b86')
+
 ax1_year.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax1_year.set_title(ax1_subject, color = '#353335', size = 10)
+
 set_labels(ax1_year)
+
 ax1_year.set_color = '#890b86'
+
 ax1_year.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#f9ffb7')
 
 rotate_xaxis(ax1_ma)
+
 ax1_ma.fill_between(df['Date'][- start:], ma1[-start:], ma2[-start:], where = (ma1[-start:] > ma2[-start:]), facecolor='g', alpha=0.6)
+
 ax1_ma.fill_between(df['Date'][- start:], ma1[-start:], ma2[-start:], where = (ma1[-start:] < ma2[-start:]), facecolor='red', alpha=0.6)
+
 ax1_ma.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
 ax1_ma.plot(df['Date'][- start:], ma1[- start:], color = 'b', linewidth = 1)     #Have to skip date ahead 10days (movAvg_window_days_short_term)
+
 ax1_ma.plot(df['Date'][- start:], ma2[- start:], color = 'k', linewidth = 1 )      #Have to skip date ahead 30 days (movAvg_window_days_long_term)
+
 set_spines(ax1_ma)
+
 ax1_ma.tick_params(axis = 'x', colors = '#890b86')
+
 ax1_ma.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax1_ma.plot([],[], linewidth = 2, label = '10d mov. avg.' , color = 'b', alpha = 0.9)
+
 ax1_ma.plot([],[], linewidth = 2, label = '30d mov. avg.' , color = 'k', alpha = 0.9)
+
 ax1_ma.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 #set_labels(ax1_ma)
 ax1_ma.set_ylabel('Moving Average', fontsize=8, fontweight =5, color = 'r')
@@ -358,83 +476,134 @@ ax1_ma.set_ylabel('Moving Average', fontsize=8, fontweight =5, color = 'r')
 ### ax1_rsi
 ##
 rsi = calc_rsi(df["Close"])
+
 rotate_xaxis(ax1_rsi)
+
 set_spines(ax1_rsi)
+
 ax1_rsi.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax1_rsi.set_ylabel('RSI', fontsize=8, fontweight =5, color = 'darkorange')
+
 rsi_col_over= 'red'
+
 rsi_col_under = 'lightgreen'
+
 ax1_rsi.plot(df['Date'],rsi, linewidth =1, color = 'orange')
+
 ax1_rsi.axhline(30, color=rsi_col_under, linewidth = 1)
+
 ax1_rsi.axhline(70, color=rsi_col_over, linewidth = 1)
+
 ax1_rsi.set_yticks([30,70])
+
 ax1_rsi.fill_between(df['Date'], rsi, 70, where = (rsi > 70), facecolor='r', alpha=0.6)
+
 ax1_rsi.fill_between(df['Date'], rsi, 30, where = (rsi < 30), facecolor='darkgreen', alpha=0.6)
+
 ax1_rsi.tick_params(axis = 'x', colors = '#890b86')
+
 plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='lower'))
+
 ax1_rsi.plot([],[], linewidth = 2, label = 'OverVal' , color = 'red', alpha = 0.9)
+
 ax1_rsi.plot([],[], linewidth = 2, label = 'UnderVal' , color = 'darkgreen', alpha = 0.9)
+
 ax1_rsi.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 2, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
+
 eMaSlow, eMaFast, macd = calc_macd(df['Close'])
+
 ema9 = calc_ema(macd, expMA_periods)
+
 macd_col_over = 'red'
+
 macd_col_under = 'lightgreen'
+
 rotate_xaxis(ax1_macd)
+
 set_spines(ax1_macd)
+
 ax1_macd.plot(df['Date'], macd, linewidth =2, color = 'darkred')
+
 ax1_macd.plot(df['Date'], ema9, linewidth =1, color = 'blue')
+
 ax1_macd.fill_between(df['Date'], macd - ema9, 0, alpha = 0.5, facecolor = 'darkgreen', where = (macd - ema9 > 0))
+
 ax1_macd.fill_between(df['Date'], macd - ema9, 0, alpha = 0.5, facecolor = macd_col_over, where = (macd - ema9 < 0))
+
 plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
+
 ax1_macd.tick_params(axis = 'x', colors = '#890b86')
+
 ax1_macd.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax1_macd.set_ylabel('MACD', fontsize=8, fontweight =5, color = 'darkred')
 
 ax1_macd.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_periods_long_term) + ',' + str(expMA_periods), linewidth = 2, color = 'darkred')
+
 ax1_macd.plot([], label='ema ' + str(expMA_periods),  linewidth = 2, color = 'blue')
+
 ax1_macd.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0., fontsize = 6.0)
+
+ax1_macd.axvline(x = df['Date'][int(len(df['Date'])/2)], linewidth = 1,  color = 'yellow')
 
 
 
 ### ax1_vol
 ##
 ax1_vol.tick_params(axis = 'x', colors = '#890b86')
+
 ax1_vol.plot_date(df['Date'], df['Volume'], '-', label='Volume', color = 'blue', linewidth = 1)
+
 ax1_vol.tick_params(axis = 'y', colors = 'k', labelsize = 6)
+
 rotate_xaxis(ax1_vol)
+
 set_spines(ax1_vol)
+
 ax1_vol.set_ylim(df['Volume'].min(),df['Volume'].max())
+
 ax1_vol.set_ylabel('Volume', fontsize=8, fontweight =5, color = 'b')
+
 ax1_vol.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
 
 
 last_rec = (len(df) -1)
-#ax1_tot.text(0,-2.1,str(df.iloc[last_rec]), fontsize=9, fontweight = 20)\
+
 last_open = df['Open'].iloc[-1]
+
 last_high = df['High'].iloc[-1]
+
 last_low  = df['Low'].iloc[-1]
+
 last_vol  = df['Volume'].iloc[-1]
+
 last_close = df['Close'].iloc[-1]
+
 hide_frame(ax1_tot)
+
 ax1_tot.text(1,1,'Open:' + '{:20,.2f}'.format(last_open) + '     ', verticalalignment='bottom', horizontalalignment='left',
          color='darkblue', fontsize=8)
 
 ax1_tot.text(1,1,'Close:' + '{:20,.2f}'.format(last_close), verticalalignment='top', horizontalalignment='left',
          color='darkblue', fontsize=8)
+
 ax1_tot.text(1,1,'High:' + '{:20,.2f}'.format(last_high) + '     ', verticalalignment='bottom', horizontalalignment='right',
          color='darkblue', fontsize=8)
+
 ax1_tot.text(1,1,'Low:' + '{:20,.2f}'.format(last_low)+ '     ', verticalalignment='top', horizontalalignment='right',
          color='darkblue', fontsize=8)
 ax1_tot.text(0.5,0.25, "Diff:" + str('{:5,.2f}'.format(last_high - last_low)), verticalalignment='bottom', horizontalalignment='left',
          color='darkblue', fontsize=8)
+
 ax1_tot.text(0.5,0.25,"                                    Diff:" + str('{:5,.2f}'.format(last_close - last_open)), verticalalignment='bottom', horizontalalignment='left',
          color='darkblue', fontsize=8)
 
 
 
 
-ax1_macd.axvline(x = df['Date'][int(len(df['Date'])/2)], linewidth = 1,  color = 'yellow')
+
 
 
 ##
