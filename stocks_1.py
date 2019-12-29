@@ -188,7 +188,7 @@ def calc_ema(values,window):
     
     return a
 #-------------------------------------------------------#
-def calc_macd(x, slow=26, fast = 12):
+def calc_macd(x, slow=macd_periods_long_term, fast = macd_periods_short_term):
 #-------------------------------------------------------#
     eMaSlow = calc_ema(x, slow)
     
@@ -258,11 +258,6 @@ if __name__ == '__main__':
         ax2_sent_subject = ax1_subject
 
 
-# movAvg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
-# movAvg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
-# macd_periods_long_term = 26
-# macd_periods_short_term = 12
-# expMA_periods = 9 
 #-----------------------------------#
 # Variables
 #-----------------------------------#
@@ -465,13 +460,25 @@ ax1_ma.tick_params(axis = 'x', colors = '#890b86')
 
 ax1_ma.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
-ax1_ma.plot([],[], linewidth = 2, label = '10d mov. avg.' , color = 'b', alpha = 0.9)
+ax1_ma.plot([],[], linewidth = 2, label = str(movAvg_window_days_short_term)+'d mov. avg.' , color = 'b', alpha = 0.9)
 
-ax1_ma.plot([],[], linewidth = 2, label = '30d mov. avg.' , color = 'k', alpha = 0.9)
+ax1_ma.plot([],[], linewidth = 2, label = str(movAvg_window_days_long_term) +'d mov. avg.' , color = 'k', alpha = 0.9)
 
 ax1_ma.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 #set_labels(ax1_ma)
-ax1_ma.set_ylabel('Moving Average', fontsize=8, fontweight =5, color = 'r')
+ax1_ma.set_ylabel('Mov.Avg.', fontsize=8, fontweight =5, color = 'r')
+
+
+# filter1 = len(df['MA30'].fillna(0)) > 0 & len(df[['MA30'][-1]].fillna(0)) > 0
+# filter2 = df['MA10'] >  df['MA30'] 
+# filter3 = df['MA10'].shift(1) <= df['MA30'].shift(1)
+
+# start_xz = ( dt.datetime.now() - dt.timedelta(days = 365) )
+# xz = df.where(filter2 & filter3).fillna(start_xz)
+
+# xz = xz['Date'].where(xz['Date'] > start_xz)
+# for i in xz.dropna():
+#     ax1_ma.axvline(i, linewidth = 1,  color = 'yellow')
 ##
 ### ax1_rsi
 ##
@@ -546,7 +553,7 @@ ax1_macd.plot([], label='ema ' + str(expMA_periods),  linewidth = 2, color = 'bl
 
 ax1_macd.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0., fontsize = 6.0)
 
-ax1_macd.axvline(x = df['Date'][int(len(df['Date'])/2)], linewidth = 1,  color = 'yellow')
+
 
 
 
@@ -616,111 +623,218 @@ ax1_tot.text(0.5,0.25,"                                    Diff:" + str('{:5,.2f
 ##
 #df_ohlc = formulaz.heikenashi(df_ohlc)
 df_ohlc.reset_index(inplace=True)                #Date becomes addressable column
+
 df_ohlc['Date'] = df_ohlc['Date'].map(mdates.date2num) #Date is now in ohlc format
+
 df_ohlc.set_index(df_ohlc['Date'])
+
 candlestick_ohlc(ax1_ohlc, df_ohlc.values, width = 1, colorup = 'g')
+
 rotate_xaxis(ax1_ohlc)
+
 set_labels(ax1_ohlc)
+
 set_spines(ax1_ohlc)
+
 ax1_ohlc.tick_params(axis = 'x', colors = '#890b86')
+
 ax1_ohlc.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax1_ohlc.set_ylabel('OHLC', fontsize=8, fontweight =5, color = 'darkgreen')
+
 ax1_ohlc.plot([],[], linewidth = 2, label = 'Up' , color = 'green', alpha = 0.9)
+
 ax1_ohlc.plot([],[], linewidth = 2, label = 'Down' , color = 'red', alpha = 0.9)
+
 ax1_ohlc.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
+##
+### RSI
+##
 
 rsi = calc_rsi(df["Close"])
+
 rotate_xaxis(ax_a)
+
 set_spines(ax_a)
+
 ax_a.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax_a.set_ylabel('RSI', fontsize=8, fontweight =5, color = 'darkorange')
+
 rsi_col_over= 'red'
+
 rsi_col_under = 'lightgreen'
+
 ax_a.plot(df['Date'],rsi, linewidth =1, color = 'orange')
+
 ax_a.axhline(30, color=rsi_col_under, linewidth = 1)
+
 ax_a.axhline(70, color=rsi_col_over, linewidth = 1)
+
 ax_a.set_yticks([30,70])
+
 ax_a.fill_between(df['Date'], rsi, 70, where = (rsi > 70), facecolor='r', alpha=0.6)
+
 ax_a.fill_between(df['Date'], rsi, 30, where = (rsi < 30), facecolor='darkgreen', alpha=0.6)
+
 ax_a.tick_params(axis = 'x', colors = '#890b86')
+
 plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='lower'))
+
 ax_a.grid(True, color='lightgray', linestyle = '-', linewidth=2)
+
 ax_a.plot([],[], linewidth = 2, label = 'OverVal' , color = 'red', alpha = 0.9)
+
 ax_a.plot([],[], linewidth = 2, label = 'UnderVal' , color = 'darkgreen', alpha = 0.9)
+
 ax_a.legend(fontsize = 6, fancybox = True, loc = 2, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
-
+##
+### Moving Average
+##
 
 ax_b.plot_date(df['Date'], df['Adj_Close'], '-', label='ADJ Closing Price', color = 'lightblue', linewidth = 1)
+
 ax_b.plot([],[], linewidth = 2, label = 'Adj_Close yr ago' , color = 'gray', alpha = 0.9)
+
 ax_b.axhline(df['Adj_Close'][0], color = 'k', linewidth = 2)
+
 ax_b.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] > stock_entry), facecolor='lightgreen', alpha=0.6)
+
 ax_b.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] < stock_entry), facecolor='pink', alpha=0.6)
+
 rotate_xaxis(ax_b)
+
 ax_b.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
 set_spines(ax_b)
+
 ax_b.tick_params(axis = 'x', colors = '#890b86')
+
 ax_b.tick_params(axis = 'y', colors = 'g', labelsize = 0)
 #
 #
-#ax_b.set_title(ax1_subject, color = '#353335', size = 10)
-#
 set_labels(ax_b)
+
 ax_b.set_color = '#890b86'
+
 ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#f9ffb7')
 
 rotate_xaxis(ax_b)
+
 ax_b.fill_between(df['Date'][- start:], ma1[-start:], ma2[-start:], where = (ma1[-start:] > ma2[-start:]), facecolor='darkgreen', alpha=0.6)
+
 ax_b.fill_between(df['Date'][- start:], ma1[-start:], ma2[-start:], where = (ma1[-start:] < ma2[-start:]), facecolor='darkred', alpha=0.6)
+
 ax_b.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
 ax_b.plot(df['Date'][- start:], ma1[- start:], color = 'b', linewidth = 1)     #Have to skip date ahead 10days (movAvg_window_days_short_term)
+
 ax_b.plot(df['Date'][- start:], ma2[- start:], color = 'k', linewidth = 1 )      #Have to skip date ahead 30 days (movAvg_window_days_long_term)
-set_spines(ax1_ma)
+
+set_spines(ax_b)
+
 ax_b.tick_params(axis = 'x', colors = '#890b86')
+
 ax_b.tick_params(axis = 'y', colors = 'g', labelsize = 6)
-ax_b.plot([],[], linewidth = 2, label = '10d mov. avg.' , color = 'darkblue', alpha = 0.9)
-ax_b.plot([],[], linewidth = 2, label = '30d mov. avg.' , color = 'k', alpha = 0.9)
+
+ax_b.plot([],[], linewidth = 2, label = str(movAvg_window_days_short_term)+'d mov. avg.' , color = 'darkblue', alpha = 0.9)
+
+ax_b.plot([],[], linewidth = 2, label = str(movAvg_window_days_long_term)+'d mov. avg.' , color = 'k', alpha = 0.9)
+
 ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
+
 #set_labels(ax1_ma)
 ax_b.set_ylabel( ax1_subject + ' Price and Composite ', fontsize=8, fontweight =5, color = 'r')
 
+filter1 = len(df['MA30'].fillna(0)) > 0 & len(df[['MA30'][-1]].fillna(0)) > 0
+
+filter2 = df['MA10'] >  df['MA30'] 
+
+filter3 = df['MA10'].shift(1) <= df['MA30'].shift(1)
+
+start_xz = ( dt.datetime.now() - dt.timedelta(days = 365) )
+
+xz = df.where(filter2 & filter3).fillna(start_xz)
+
+xz = xz['Date'].where(xz['Date'] > start_xz)
+
+for i in xz.dropna():
+
+    ax1_ma.axvline(i, linewidth = 1,  color = 'yellow')
+
+    ax_b.axvline(i, linewidth = 1,  color = 'yellow')
+
+
+
+
 candlestick_ohlc(ax_b, df_ohlc.values, width = 1, colorup = 'g')
+
 rotate_xaxis(ax_b)
+
 set_labels(ax_b)
+
 set_spines(ax_b)
+
 ax_b.tick_params(axis = 'x', colors = '#890b86')
+
 ax_b.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax_b.set_ylabel('OHLC', fontsize=8, fontweight =5, color = 'darkgreen')
+
 ax_b.plot([],[], linewidth = 2, label = 'Up' , color = 'green', alpha = 0.9)
+
 ax_b.plot([],[], linewidth = 2, label = 'Down' , color = 'red', alpha = 0.9)
+
 ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
+
+
+
 rotate_xaxis(ax_c)
+
 set_spines(ax_c)
+
 ax_c.plot(df['Date'], macd, linewidth =2, color = 'darkred')
+
 ax_c.plot(df['Date'], ema9, linewidth =1, color = 'blue')
+
 ax_c.fill_between(df['Date'], macd - ema9, 0, alpha = 0.5, facecolor = 'darkgreen', where = (macd - ema9 > 0))
+
 ax_c.fill_between(df['Date'], macd - ema9, 0, alpha = 0.5, facecolor = macd_col_over, where = (macd - ema9 < 0))
+
 plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
+
 ax_c.tick_params(axis = 'x', colors = '#890b86')
+
 ax_c.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax_c.set_ylabel('MACD', fontsize=8, fontweight =5, color = 'darkred')
 
 ax_c.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_periods_long_term) + ',' + str(expMA_periods), linewidth = 2, color = 'darkred')
+
 ax_c.plot([], label='ema ' + str(expMA_periods),  linewidth = 2, color = 'blue')
+
 ax_c.legend(loc=2, borderaxespad=0., fontsize = 6.0)
 
 
 
 #ax_d = ax_b.twinx()
 ax_d.tick_params(axis = 'x', colors = '#890b86')
+
 ax_d.plot_date(df['Date'], df['Volume'], '-', label='Volume', color = 'blue', linewidth = 1)
+
 ax_d.tick_params(axis = 'y', colors = 'k', labelsize = 6)
+
 rotate_xaxis(ax_d)
+
 set_spines(ax_d)
+
 ax_d.set_ylim(df['Volume'].min(),df['Volume'].max())
+
 ax_d.set_ylabel('Volume', fontsize=8, fontweight =5, color = 'b')
+
 ax_d.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
 
 #######################################
@@ -728,6 +842,7 @@ ax_d.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
 #                                     #
 #######################################
 a = Analysis(ax1_subject)
+
 sentiment, subjectivity, plots  = a.run()
 ##
 ### Convert list of dictionaries to a DataFrame
@@ -738,160 +853,252 @@ df_plot = pd.DataFrame()
 ###     to a set we can plot
 ##
 x = 0  
+
 y = 0
+
 x_plot_list = []
+
 y_plot_list = []
+
 for dict_plot in plots: # Per Doctor Rob, PhD, leave in the zeros
     # if ( dict_plot['sentiment'] == 0.0 ) & ( dict_plot['subjectivity'] == 0.0 ):
     #     continue
+
     x = dict_plot['sentiment'] #* 100
+
     y = dict_plot['subjectivity'] #* 100
+
     x_plot_list.append(x)
+
     y_plot_list.append(y)
+
 df_plot['sentiment'] = x_plot_list
+
 df_plot['subjectivity'] = y_plot_list
 
 
 
 
 ax2_sent.plot(sentiment, subjectivity, '*', label='Sentiment Points', color = 'red', linewidth = 1)
+
 set_spines(ax2_sent)
+
 rotate_xaxis(ax2_sent)
+
 ax2_sent.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
 ax2_sent.set_xlim(-1, 1)
+
 ax2_sent.set_ylim(0, 1)
+
 ax2_sent.tick_params(axis = 'x', colors = '#890b86', labelsize = 6)
+
 ax2_sent.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax2_sent.set_title("(neg) <-- " + ax1_subject + " Sentiment Score --> (pos)", color = '#353335', size = 10)
+
 ax2_sent.set_ylabel('Subjectivity', fontsize=8, fontweight =5, color = '#890b86')
+
 ax2_sent.axhline(0, color = 'k', linewidth = 2, label = '0.0 = Neutral')
+
 ax2_sent.plot([],[], linewidth = 2, label = 'Sentiment: ' + str(sentiment) , color = 'red', alpha = 0.9)
+
 ax2_sent.plot([],[], linewidth = 2, label = 'Subjectivity: ' + str(subjectivity) , color = 'red', alpha = 0.9)
+
 ax2_sent.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
 
+
 ax2_sent_plots.plot(df_plot['sentiment'], df_plot['subjectivity'], '*', color = 'blue')
+
 ax2_sent_plots.plot([],[], linewidth = 2, label = 'Neutral' , color = 'k', alpha = 0.9)
+
 ax2_sent_plots.axhline(0, color = 'yellow', linewidth = 1)
+
 rotate_xaxis(ax2_sent_plots)
+
 set_spines(ax2_sent_plots)
+
 ax2_sent_plots.axvline(x = 0, linewidth = 1,  color = 'yellow')
+
 #ax2_sent_plots.set_ylim(0, 1)
 ax2_sent_plots.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
 ax2_sent_plots.tick_params(axis = 'x', colors = '#890b86', labelsize = 6)
+
 ax2_sent_plots.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax2_sent_plots.set_title("(neg) <-- " + ax1_subject + " Sentiment Plots --> (pos)", color = '#353335', size = 10)
+
 ax2_sent_plots.set_ylabel('Subjectivity', fontsize=8, fontweight =5, color = '#890b86')
 
 
 
-#hide_frame(ax_sent_chart)
-
-binwidth = .01
-lim = np.ceil(np.abs([df_plot['sentiment'], df_plot['subjectivity']]).max() / binwidth) * binwidth
-#ax_sent_chart.set_xlim((-1,1 )) #-lim, lim))
-#ax_sent_chart.set_ylim((-1,1)) #-lim, lim))
-bins = np.arange(-lim, lim + binwidth, binwidth)
 
 ax_sent_chart.hist(df_plot['sentiment'], bins = 20, histtype = 'barstacked', rwidth = 2)# ,df_plot['subjectivity'])
+
 ax_sent_chart.plot([],[], linewidth = 2, label = 'Neutral' , color = 'k', alpha = 0.9)
+
 ax_sent_chart.axhline(0, color = 'yellow', linewidth = 1)
+
 rotate_xaxis(ax_sent_chart)
+
 set_spines(ax_sent_chart)
+
 ax_sent_chart.axvline(x = 0, linewidth = 1,  color = 'yellow')
+
 #ax2_sent_plots.set_ylim(0, 1)
 ax_sent_chart.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
 ax_sent_chart.tick_params(axis = 'x', colors = '#890b86', labelsize = 6)
+
 ax_sent_chart.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
 ax_sent_chart.set_title("(neg) <-- " + ax1_subject + " Sentiment Chart --> (pos)", color = '#353335', size = 10)
+
 ax_sent_chart.set_ylabel('Counts', fontsize=8, fontweight =5, color = '#890b86')
+
 ax_sent_chart.set_xlabel('Sentiment', fontsize=8, fontweight =5, color = '#890b86')
-# ax_sent_chart.text(0,1,'Similar:' + '{:20,.2f}'.format(last_open) + '     ', verticalalignment='bottom', horizontalalignment='left',
-#          color='darkblue', fontsize=10)
-# ax_sent_chart.text(1,1,'Close:' + '{:20,.2f}'.format(last_close), verticalalignment='top', horizontalalignment='left',
-#          color='darkblue', fontsize=8)
-# ax_sent_chart.text(1,1,'High:' + '{:20,.2f}'.format(last_high) + '     ', verticalalignment='bottom', horizontalalignment='right',
-#          color='darkblue', fontsize=8)
-# ax_sent_chart.text(1,1,'Low:' + '{:20,.2f}'.format(last_low)+ '     ', verticalalignment='top', horizontalalignment='right',
-#          color='darkblue', fontsize=8)
-# ax_sent_chart.text(0.5,0.25, "Diff:" + str('{:5,.2f}'.format(last_high - last_low)), verticalalignment='bottom', horizontalalignment='left',
-#          color='darkblue', fontsize=8)
-# ax_sent_chart.text(0.5,0.25,"                                    Diff:" + str('{:5,.2f}'.format(last_close - last_open)), verticalalignment='bottom', horizontalalignment='left',
-#          color='darkblue', fontsize=8)
 
 
 #######################################
 # Generate Similar Stocks
 #######################################
 a  = corr(ax1_subject)
+
 row_cnt = 0
+
 col_cnt = 0
+
 mydict = a.run(ax1_subject)
 
 stock_items = mydict.items()
+
 for stock_item in stock_items:
+
     row_cnt += 1
+
     if row_cnt  ==  1:
+
         ax3_sim_stock1.set_visible(True)
+
         ax3_subject = (stock_item[0]) 
+
         df = pd.read_csv((ax3_subject + '.csv'), parse_dates=True, index_col =0)
+
         df.reset_index(inplace = True)
+
         stock_entry = (df['Adj_Close'][0])               # Set marker of last years close.
+
         ax3_sim_stock1.plot_date(df['Date'], df['Adj_Close'], '-', label='ADJ Closing Price', color = 'blue', linewidth = 1)
+
         ax3_sim_stock1.plot([],[], linewidth = 2, label = 'Adj_Close yr ago' , color = 'k', alpha = 0.9)
+
         ax3_sim_stock1.axhline(df['Adj_Close'][0], color = 'k', linewidth = 2)
+
         ax3_sim_stock1.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] > stock_entry), facecolor='g', alpha=0.6)
+
         ax3_sim_stock1.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] < stock_entry), facecolor='r', alpha=0.6)
+
         rotate_xaxis(ax3_sim_stock1)
+
         ax3_sim_stock1.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
         set_spines(ax3_sim_stock1)
+
         ax3_sim_stock1.tick_params(axis = 'x', colors = '#890b86')
+
         ax3_sim_stock1.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
         ax3_sim_stock1.set_title("Similar Stock: " + ax3_subject + " correlates: " + "{0:.2f}".format(round(stock_item[1],2) ) + "%", color = '#353335', size = 9)
+
         set_labels(ax3_sim_stock1)
+
         ax3_sim_stock1.set_color = '#890b86'
+
         ax3_sim_stock1.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#f9ffb7')
 
+
     if row_cnt  ==  2:
+
         ax4_subject = (stock_item[0]) 
+
         df = pd.read_csv((ax4_subject + '.csv'), parse_dates=True, index_col =0)
+
         ax3_sim_stock2.set_visible(True)
+
         df.reset_index(inplace = True)
+
         stock_entry = (df['Adj_Close'][0])               # Set marker of last years close.
+
         ax3_sim_stock2.plot_date(df['Date'], df['Adj_Close'], '-', label='ADJ Closing Price', color = 'blue', linewidth = 1)
+
         ax3_sim_stock2.plot([],[], linewidth = 2, label = 'Adj_Close yr ago' , color = 'k', alpha = 0.9)
+
         ax3_sim_stock2.axhline(df['Adj_Close'][0], color = 'k', linewidth = 2)
+
         ax3_sim_stock2.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] > stock_entry), facecolor='g', alpha=0.6)
+
         ax3_sim_stock2.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] < stock_entry), facecolor='r', alpha=0.6)
+
         rotate_xaxis(ax3_sim_stock2)
+
         ax3_sim_stock2.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
         set_spines(ax3_sim_stock2)
+
         ax3_sim_stock2.tick_params(axis = 'x', colors = '#890b86')
+
         ax3_sim_stock2.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
         ax3_sim_stock2.set_title("Similar Stock: " + ax4_subject + " correlates: " + "{0:.2f}".format(round(stock_item[1],2) ) + "%", color = '#353335', size = 9)
+
         set_labels(ax3_sim_stock2)
+
         ax3_sim_stock2.set_color = '#890b86'
+
         ax3_sim_stock2.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#f9ffb7')
 
+
+
     if row_cnt  ==  3:
+
         ax5_subject = (stock_item[0]) 
+
         df = pd.read_csv((ax5_subject + '.csv'), parse_dates=True, index_col =0)
+
         ax3_sim_stock3.set_visible(True)
+
         df.reset_index(inplace = True)
+
         stock_entry = (df['Adj_Close'][0])               # Set marker of last years close.
+
         ax3_sim_stock3.plot_date(df['Date'], df['Adj_Close'], '-', label='ADJ Closing Price', color = 'blue', linewidth = 1)
+
         ax3_sim_stock3.plot([],[], linewidth = 2, label = 'Adj_Close yr ago' , color = 'k', alpha = 0.9)
+
         ax3_sim_stock3.axhline(df['Adj_Close'][0], color = 'k', linewidth = 2)
+
         ax3_sim_stock3.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] > stock_entry), facecolor='g', alpha=0.6)
+
         ax3_sim_stock3.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] < stock_entry), facecolor='r', alpha=0.6)
+
         rotate_xaxis(ax3_sim_stock3)
+
         ax3_sim_stock3.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+
         set_spines(ax3_sim_stock3)
+
         ax3_sim_stock3.tick_params(axis = 'x', colors = '#890b86')
+
         ax3_sim_stock3.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
         ax3_sim_stock3.set_title("Similar Stock: " + ax5_subject + " correlates: " + "{0:.2f}".format(round(stock_item[1],2) ) + "%", color = '#353335', size = 9)
+
         set_labels(ax3_sim_stock3)
+
         ax3_sim_stock3.set_color = '#890b86'
+
         ax3_sim_stock3.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#f9ffb7')
 
 
@@ -899,11 +1106,18 @@ for stock_item in stock_items:
 
 
 
+
 plt.rc('ytick', labelsize=6 )    # fontsize of the tick labels
+
 plt.subplots_adjust(left = 0.10, bottom = 0.16, right = 0.920, top = 0.93, wspace = 0.2, hspace = -.1)
+
 fig = gcf()
+
 my_title = (user, "Stock Page")
+
 fig.suptitle(user + " Stock Page", fontsize=14)
 
+
 plt.show()
+
 fig.savefig(ax1_subject + '.png')
