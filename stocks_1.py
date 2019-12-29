@@ -298,25 +298,6 @@ except:
         
         subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
         
-        try:
-            if os.path.exists(saveFile) and dt.date.fromtimestamp(st.st_mtime) == dt.date.today():
-                
-                pass
-            
-            else:
-                msg = ("Unable to rebuild:", ax1_subject, "Aborting. Either BAD ticker or python pgm tools_build_datawarehouse.py is NOT in same directory?")
-                
-                print(msg)
-
-                sys.exit(0)
-
-        except:
-           
-            msg = ("Unable to rebuild:", ax1_subject, "Aborting. Either BAD ticker or python pgm tools_build_datawarehouse.py is NOT in same directory?")
-                
-            print(msg)
-
-            sys.exit(0)
     except:
 
         msg = ("Unable to rebuild:", ax1_subject, "Aborting. Either BAD ticker or python pgm tools_build_datawarehouse.py is NOT in same directory?")

@@ -1,4 +1,5 @@
 import os
+from config import *
 import datetime as dt
 try:
     import bs4 as bs
@@ -86,7 +87,7 @@ def calc_ema(values,window):
     a[:window] = a[window]
     return a
 #-------------------------------------------------------#
-def calc_macd(x, slow=26, fast = 12):
+def calc_macd(x, slow=macd_periods_long_term, fast = macd_periods_short_term):
 #-------------------------------------------------------#
     eMaSlow = calc_ema(x, slow)
     eMaFast = calc_ema(x, fast)
@@ -103,6 +104,8 @@ def save_sp500_stocks():
     stocks.append('TSLA')
     stocks.append('JCP')
     stocks.append('MANH')                          # Add missing stock
+    stocks.append('BRKB')
+    stocks.append('BFB')
 
     for row in table.findAll('tr')[1:]:            #Wiki data starts w/2nd row
         subject = row.findAll('td')[0].text        #Wiki data starts 1st col
@@ -148,8 +151,8 @@ def get_data_from_yahoo(reload_sp500 = True):
                     print(" but updating data to bring current to today:" , end)
                     df = web.DataReader(subject, provider, start, end)
                     df.rename(columns={"Adj Close":'Adj_Close'}, inplace=True)
-                    df['MA10'] = df['Adj_Close'].rolling(10).mean()
-                    df['MA30'] = df['Adj_Close'].rolling(30).mean()
+                    df['MA10'] = df['Adj_Close'].rolling(movAvg_window_days_short_term).mean()
+                    df['MA30'] = df['Adj_Close'].rolling(movAvg_window_days_long_term).mean()
                     df['RSI']  = calc_rsi(df["Close"])
                     eMaSlow, eMaFast, df['MACD'] = calc_macd(df['Close'])
                     df['EMA9'] = calc_ema(df['MACD'], expMA_periods)
@@ -162,8 +165,8 @@ def get_data_from_yahoo(reload_sp500 = True):
             try:
                 df = web.DataReader(subject, provider, start, end)
                 df.rename(columns={"Adj Close":'Adj_Close'}, inplace=True)
-                df['MA10'] = df['Adj_Close'].rolling(10).mean()
-                df['MA30'] = df['Adj_Close'].rolling(30).mean()
+                df['MA10'] = df['Adj_Close'].rolling(movAvg_window_days_short_term).mean()
+                df['MA30'] = df['Adj_Close'].rolling(movAvg_window_days_long_term).mean()
                 df['RSI']  = calc_rsi(df["Close"])
                 eMaSlow, eMaFast, df['MACD'] = calc_macd(df['Close'])
                 df['EMA9'] = calc_ema(df['MACD'], expMA_periods)
@@ -213,11 +216,6 @@ def compile_data():
 #---------------------------------------#
 # Variables
 #---------------------------------------#
-movAvg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
-movAvg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
-macd_periods_long_term = 26
-macd_periods_short_term = 12
-expMA_periods = 9 
 in_file = 'in_file'                            # Read Wiki data into this file
 subject = ''                            # Stock Abbreviation
 provider = 'yahoo' 

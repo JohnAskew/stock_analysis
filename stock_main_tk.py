@@ -41,13 +41,13 @@ def popupmsg(msg):
 #-------------------------------------#
     popup = tk.Tk()
     
-    popup.wm_title("!")
+    popup.wm_title(" Warning!")
     
     label = ttk.Label(popup, text = msg)
     
     label.pack(side = "top", fill = "x", pady = 10)
     
-    B1 = ttk.Button(popup, text = "Okay", command = popup.destroy())
+    B1 = ttk.Button(popup, text = "Okay", command = lambda: popup.destroy())
     
     B1.pack()
     
@@ -149,12 +149,50 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
 #-------------------------------------#  
         tk.Frame.__init__(self, parent)
+        
         #-------------------------------------#
         def get_entryText():
         #-------------------------------------#
             p = e1.get()
+
+            if len(p) < 1:
+
+                msg = "Accepted input must be Characters"
+
+                popupmsg(msg)
+
+                return
+
+            p = ''.join(p)
+
+            p = str.upper(p).split()
+
+            p = str(p[0])
+
+
+
+            if p.isalpha():
+
+                pass 
+
+            else:
+
+                msg = "Input must be all Alphabetic Characters without spaces"
+
+                popupmsg(msg) 
+
+                return
             
+            if len(p) > 5:
+
+                msg = "Stock Ticker must be 5 Characters or less"
+
+                popupmsg(msg)
+
+                return
+
             return p
+
 
         label = tk.Label(self, text = "Search Stock Tool", font = ("Times", "24", "bold italic underline"))
         
@@ -186,7 +224,7 @@ class StartPage(tk.Frame):
 
         button3.pack()
 
-        e2_label = tk.Label(self, text = "--> First daily run takes \n4 minutes to build 500 \nstocks datawarehouse <--", font = ("Monospace, 10"))
+        e2_label = tk.Label(self, text = "--> First daily run takes 7 minutes to build\n500 stocks datawarehouse.\nSee new folder \"askew\" to reference datawarehouse build <--", font = ("Monospace, 10"))
 
         e2_label.pack(side = 'top')
 
