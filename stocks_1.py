@@ -127,13 +127,18 @@ a = ParseConfig()
 movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold = a.run()
 
 movavg_window_days_short_term = int(movavg_window_days_short_term)
-movavg_window_days_long_term  = int(movavg_window_days_long_term)
-macd_periods_long_term        = int(macd_periods_long_term)
-macd_periods_short_term       = int(macd_periods_short_term)
-expma_periods                 = int(expma_periods)
-rsi_overbought                = int(rsi_overbought)
-rsi_oversold                  = int(rsi_oversold)
 
+movavg_window_days_long_term  = int(movavg_window_days_long_term)
+
+macd_periods_long_term        = int(macd_periods_long_term)
+
+macd_periods_short_term       = int(macd_periods_short_term)
+
+expma_periods                 = int(expma_periods)
+
+rsi_overbought                = int(rsi_overbought)
+
+rsi_oversold                  = int(rsi_oversold)
 
 ########################################################
 # Functions (before Main Logic)
@@ -307,7 +312,9 @@ try:
     if os.path.exists(saveFile) and dt.date.fromtimestamp(st.st_mtime) != dt.date.today():
         
         print(os.path.exists(saveFile))
+
         print("dt.date.fromtimestamp(st.st_mtime)" , dt.date.fromtimestamp(st.st_mtime))
+
         print("dt.date.today()", dt.date.today())
    
         try:
@@ -598,21 +605,16 @@ ax1_tot.text(0.5,0.25, "Diff:" + str('{:5,.2f}'.format(last_high - last_low)), v
 ax1_tot.text(0.5,0.25,"                                    Diff:" + str('{:5,.2f}'.format(last_close - last_open)), verticalalignment='bottom', horizontalalignment='left',
          color='darkblue', fontsize=8)
 
+'''
+Extract what is needed for candlestick_ohlc AND
+ Every 10 days take and average
+  candlestick_ohlc expects: date, high low, close as inputs
 
-
-
-
-
-
-##
-### Extract what is needed for candlestick_ohlc AND
-###    Every 10 days take and average
-###  candlestick_ohlc expects: date, high low, close as inputs
-##
-### Drop index to set up mdates to replace date 
-###  needed by candelstick_ohlc - does not use std. date fmt.
-##
+Drop index to set up mdates to replace date 
+  needed by candelstick_ohlc - does not use std. date fmt.
+'''
 #df_ohlc = formulaz.heikenashi(df_ohlc)
+
 df_ohlc.reset_index(inplace=True)                #Date becomes addressable column
 
 df_ohlc['Date'] = df_ohlc['Date'].map(mdates.date2num) #Date is now in ohlc format
@@ -704,8 +706,7 @@ set_spines(ax_b)
 ax_b.tick_params(axis = 'x', colors = '#890b86')
 
 ax_b.tick_params(axis = 'y', colors = 'g', labelsize = 0)
-#
-#
+
 set_labels(ax_b)
 
 ax_b.set_color = '#890b86'
@@ -736,7 +737,6 @@ ax_b.plot([],[], linewidth = 2, label = str(movavg_window_days_long_term)+'d mov
 
 ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
-#set_labels(ax1_ma)
 ax_b.set_ylabel( ax1_subject + ' Price and Composite ', fontsize=8, fontweight =5, color = 'r')
 
 filter1 = len(df['MA30'].fillna(0)) > 0 & len(df[['MA30'][-1]].fillna(0)) > 0
@@ -756,8 +756,6 @@ for i in xz.dropna():
     ax1_ma.axvline(i, linewidth = 1,  color = 'yellow')
 
     ax_b.axvline(i, linewidth = 1,  color = 'yellow')
-
-
 
 
 candlestick_ohlc(ax_b, df_ohlc.values, width = 1, colorup = 'g')
@@ -810,8 +808,6 @@ ax_c.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'blue')
 ax_c.legend(loc=2, borderaxespad=0., fontsize = 6.0)
 
 
-
-#ax_d = ax_b.twinx()
 ax_d.tick_params(axis = 'x', colors = '#890b86')
 
 ax_d.plot_date(df['Date'], df['Volume'], '-', label='Volume', color = 'blue', linewidth = 1)
