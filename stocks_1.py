@@ -2,21 +2,21 @@
 import os
 
 try:
-    from config import *
+    from tools_parse_config import ParseConfig
 except:
     msg = "Unable to find config file. Using defaults"
     
     print(msg)
     
-    movAvg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
+    movavg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
     
-    movAvg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
+    movavg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
     
     macd_periods_long_term = 26
     
     macd_periods_short_term = 12
     
-    expMA_periods = 9 
+    expma_periods = 9 
 
 from formulas import *
 from tools_scrape import *
@@ -121,6 +121,19 @@ style.use('fivethirtyeight')
 plt.rcParams['axes.formatter.useoffset'] = False
 
 pd.plotting.register_matplotlib_converters()
+
+a = ParseConfig()
+
+movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold = a.run()
+
+movavg_window_days_short_term = int(movavg_window_days_short_term)
+movavg_window_days_long_term  = int(movavg_window_days_long_term)
+macd_periods_long_term        = int(macd_periods_long_term)
+macd_periods_short_term       = int(macd_periods_short_term)
+expma_periods                 = int(expma_periods)
+rsi_overbought                = int(rsi_overbought)
+rsi_oversold                  = int(rsi_oversold)
+
 
 ########################################################
 # Functions (before Main Logic)
@@ -261,6 +274,8 @@ if __name__ == '__main__':
 #-----------------------------------#
 # Variables
 #-----------------------------------#
+
+
 user = getpass.getuser()
 
 provider = 'yahoo' 
@@ -289,22 +304,28 @@ try:
     
     st = os.stat(saveFile)
     
-    if os.path.exists(saveFile) and dt.date.fromtimestamp(st.st_mtime) == dt.date.today():
+    if os.path.exists(saveFile) and dt.date.fromtimestamp(st.st_mtime) != dt.date.today():
         
-        pass
+        print(os.path.exists(saveFile))
+        print("dt.date.fromtimestamp(st.st_mtime)" , dt.date.fromtimestamp(st.st_mtime))
+        print("dt.date.today()", dt.date.today())
+   
+        try:
+            
+            subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
+            
+        except:
+
+            msg = ("Unable to rebuild:", ax1_subject, "Aborting. Either BAD ticker or python pgm tools_build_datawarehouse.py is NOT in same directory?")
+
+            print(msg)
+
+            sys.exit(0)
+
 except:
     
-    try:
-        
-        subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
-        
-    except:
+    subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
 
-        msg = ("Unable to rebuild:", ax1_subject, "Aborting. Either BAD ticker or python pgm tools_build_datawarehouse.py is NOT in same directory?")
-
-        print(msg)
-
-        sys.exit(0)
 
 
 ########################################################
@@ -387,11 +408,11 @@ stock_entry = (df['Adj_Close'][0])               # Set marker of last years clos
 
 df.reset_index(inplace = True) 
 
-ma1 = moving_average(df['Adj_Close'], movAvg_window_days_short_term)
+mA_Short = moving_average(df['Adj_Close'], movavg_window_days_short_term)
 
-ma2 = moving_average(df['Adj_Close'], movAvg_window_days_long_term)
+mA_Long = moving_average(df['Adj_Close'], movavg_window_days_long_term)
 
-start = len(df['Date'][movAvg_window_days_long_term - 1:])
+start = len(df['Date'][movavg_window_days_long_term - 1:])
 ########################################################
 #Start Plotting
 ########################################################
@@ -425,15 +446,15 @@ ax1_year.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0,
 
 rotate_xaxis(ax1_ma)
 
-ax1_ma.fill_between(df['Date'][- start:], ma1[-start:], ma2[-start:], where = (ma1[-start:] > ma2[-start:]), facecolor='g', alpha=0.6)
+ax1_ma.fill_between(df['Date'][- start:], mA_Short[-start:], mA_Long[-start:], where = (mA_Short[-start:] > mA_Long[-start:]), facecolor='g', alpha=0.6)
 
-ax1_ma.fill_between(df['Date'][- start:], ma1[-start:], ma2[-start:], where = (ma1[-start:] < ma2[-start:]), facecolor='red', alpha=0.6)
+ax1_ma.fill_between(df['Date'][- start:], mA_Short[-start:], mA_Long[-start:], where = (mA_Short[-start:] < mA_Long[-start:]), facecolor='red', alpha=0.6)
 
 ax1_ma.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
 
-ax1_ma.plot(df['Date'][- start:], ma1[- start:], color = 'b', linewidth = 1)     #Have to skip date ahead 10days (movAvg_window_days_short_term)
+ax1_ma.plot(df['Date'][- start:], mA_Short[- start:], color = 'b', linewidth = 1)     #Have to skip date ahead 10days (movavg_window_days_short_term)
 
-ax1_ma.plot(df['Date'][- start:], ma2[- start:], color = 'k', linewidth = 1 )      #Have to skip date ahead 30 days (movAvg_window_days_long_term)
+ax1_ma.plot(df['Date'][- start:], mA_Long[- start:], color = 'k', linewidth = 1 )      #Have to skip date ahead 30 days (movavg_window_days_long_term)
 
 set_spines(ax1_ma)
 
@@ -441,25 +462,14 @@ ax1_ma.tick_params(axis = 'x', colors = '#890b86')
 
 ax1_ma.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
-ax1_ma.plot([],[], linewidth = 2, label = str(movAvg_window_days_short_term)+'d mov. avg.' , color = 'b', alpha = 0.9)
+ax1_ma.plot([],[], linewidth = 2, label = str(movavg_window_days_short_term)+'d mov. avg.' , color = 'b', alpha = 0.9)
 
-ax1_ma.plot([],[], linewidth = 2, label = str(movAvg_window_days_long_term) +'d mov. avg.' , color = 'k', alpha = 0.9)
+ax1_ma.plot([],[], linewidth = 2, label = str(movavg_window_days_long_term) +'d mov. avg.' , color = 'k', alpha = 0.9)
 
 ax1_ma.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 #set_labels(ax1_ma)
 ax1_ma.set_ylabel('Mov.Avg.', fontsize=8, fontweight =5, color = 'r')
 
-
-# filter1 = len(df['MA30'].fillna(0)) > 0 & len(df[['MA30'][-1]].fillna(0)) > 0
-# filter2 = df['MA10'] >  df['MA30'] 
-# filter3 = df['MA10'].shift(1) <= df['MA30'].shift(1)
-
-# start_xz = ( dt.datetime.now() - dt.timedelta(days = 365) )
-# xz = df.where(filter2 & filter3).fillna(start_xz)
-
-# xz = xz['Date'].where(xz['Date'] > start_xz)
-# for i in xz.dropna():
-#     ax1_ma.axvline(i, linewidth = 1,  color = 'yellow')
 ##
 ### ax1_rsi
 ##
@@ -479,15 +489,15 @@ rsi_col_under = 'lightgreen'
 
 ax1_rsi.plot(df['Date'],rsi, linewidth =1, color = 'orange')
 
-ax1_rsi.axhline(30, color=rsi_col_under, linewidth = 1)
+ax1_rsi.axhline(rsi_oversold, color=rsi_col_under, linewidth = 1)
 
-ax1_rsi.axhline(70, color=rsi_col_over, linewidth = 1)
+ax1_rsi.axhline(rsi_overbought, color=rsi_col_over, linewidth = 1)
 
-ax1_rsi.set_yticks([30,70])
+ax1_rsi.set_yticks([rsi_oversold,rsi_overbought])
 
-ax1_rsi.fill_between(df['Date'], rsi, 70, where = (rsi > 70), facecolor='r', alpha=0.6)
+ax1_rsi.fill_between(df['Date'], rsi, rsi_overbought, where = (rsi > rsi_overbought), facecolor='r', alpha=0.6)
 
-ax1_rsi.fill_between(df['Date'], rsi, 30, where = (rsi < 30), facecolor='darkgreen', alpha=0.6)
+ax1_rsi.fill_between(df['Date'], rsi, rsi_oversold, where = (rsi < rsi_oversold), facecolor='darkgreen', alpha=0.6)
 
 ax1_rsi.tick_params(axis = 'x', colors = '#890b86')
 
@@ -502,7 +512,7 @@ ax1_rsi.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 2, 
 
 eMaSlow, eMaFast, macd = calc_macd(df['Close'])
 
-ema9 = calc_ema(macd, expMA_periods)
+ema9 = calc_ema(macd, expma_periods)
 
 macd_col_over = 'red'
 
@@ -528,9 +538,9 @@ ax1_macd.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
 ax1_macd.set_ylabel('MACD', fontsize=8, fontweight =5, color = 'darkred')
 
-ax1_macd.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_periods_long_term) + ',' + str(expMA_periods), linewidth = 2, color = 'darkred')
+ax1_macd.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_periods_long_term) + ',' + str(expma_periods), linewidth = 2, color = 'darkred')
 
-ax1_macd.plot([], label='ema ' + str(expMA_periods),  linewidth = 2, color = 'blue')
+ax1_macd.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'blue')
 
 ax1_macd.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0., fontsize = 6.0)
 
@@ -649,15 +659,15 @@ rsi_col_under = 'lightgreen'
 
 ax_a.plot(df['Date'],rsi, linewidth =1, color = 'orange')
 
-ax_a.axhline(30, color=rsi_col_under, linewidth = 1)
+ax_a.axhline(rsi_oversold, color=rsi_col_under, linewidth = 1)
 
-ax_a.axhline(70, color=rsi_col_over, linewidth = 1)
+ax_a.axhline(rsi_overbought, color=rsi_col_over, linewidth = 1)
 
-ax_a.set_yticks([30,70])
+ax_a.set_yticks([rsi_oversold,rsi_overbought])
 
-ax_a.fill_between(df['Date'], rsi, 70, where = (rsi > 70), facecolor='r', alpha=0.6)
+ax_a.fill_between(df['Date'], rsi, rsi_overbought, where = (rsi > rsi_overbought), facecolor='r', alpha=0.6)
 
-ax_a.fill_between(df['Date'], rsi, 30, where = (rsi < 30), facecolor='darkgreen', alpha=0.6)
+ax_a.fill_between(df['Date'], rsi, rsi_oversold, where = (rsi < rsi_oversold), facecolor='darkgreen', alpha=0.6)
 
 ax_a.tick_params(axis = 'x', colors = '#890b86')
 
@@ -704,15 +714,15 @@ ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealp
 
 rotate_xaxis(ax_b)
 
-ax_b.fill_between(df['Date'][- start:], ma1[-start:], ma2[-start:], where = (ma1[-start:] > ma2[-start:]), facecolor='darkgreen', alpha=0.6)
+ax_b.fill_between(df['Date'][- start:], mA_Short[-start:], mA_Long[-start:], where = (mA_Short[-start:] > mA_Long[-start:]), facecolor='darkgreen', alpha=0.6)
 
-ax_b.fill_between(df['Date'][- start:], ma1[-start:], ma2[-start:], where = (ma1[-start:] < ma2[-start:]), facecolor='darkred', alpha=0.6)
+ax_b.fill_between(df['Date'][- start:], mA_Short[-start:], mA_Long[-start:], where = (mA_Short[-start:] < mA_Long[-start:]), facecolor='darkred', alpha=0.6)
 
 ax_b.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
 
-ax_b.plot(df['Date'][- start:], ma1[- start:], color = 'b', linewidth = 1)     #Have to skip date ahead 10days (movAvg_window_days_short_term)
+ax_b.plot(df['Date'][- start:], mA_Short[- start:], color = 'b', linewidth = 1)     #Have to skip date ahead 10days (movavg_window_days_short_term)
 
-ax_b.plot(df['Date'][- start:], ma2[- start:], color = 'k', linewidth = 1 )      #Have to skip date ahead 30 days (movAvg_window_days_long_term)
+ax_b.plot(df['Date'][- start:], mA_Long[- start:], color = 'k', linewidth = 1 )      #Have to skip date ahead 30 days (movavg_window_days_long_term)
 
 set_spines(ax_b)
 
@@ -720,9 +730,9 @@ ax_b.tick_params(axis = 'x', colors = '#890b86')
 
 ax_b.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
-ax_b.plot([],[], linewidth = 2, label = str(movAvg_window_days_short_term)+'d mov. avg.' , color = 'darkblue', alpha = 0.9)
+ax_b.plot([],[], linewidth = 2, label = str(movavg_window_days_short_term)+'d mov. avg.' , color = 'darkblue', alpha = 0.9)
 
-ax_b.plot([],[], linewidth = 2, label = str(movAvg_window_days_long_term)+'d mov. avg.' , color = 'k', alpha = 0.9)
+ax_b.plot([],[], linewidth = 2, label = str(movavg_window_days_long_term)+'d mov. avg.' , color = 'k', alpha = 0.9)
 
 ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
@@ -793,9 +803,9 @@ ax_c.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
 ax_c.set_ylabel('MACD', fontsize=8, fontweight =5, color = 'darkred')
 
-ax_c.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_periods_long_term) + ',' + str(expMA_periods), linewidth = 2, color = 'darkred')
+ax_c.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_periods_long_term) + ',' + str(expma_periods), linewidth = 2, color = 'darkred')
 
-ax_c.plot([], label='ema ' + str(expMA_periods),  linewidth = 2, color = 'blue')
+ax_c.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'blue')
 
 ax_c.legend(loc=2, borderaxespad=0., fontsize = 6.0)
 

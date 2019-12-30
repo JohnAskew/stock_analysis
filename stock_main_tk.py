@@ -15,27 +15,55 @@ try:
 except:
     os.system("pip install subprocess")
     import subprocess
+try:
+    import configparser
+except:
+    os.system('pip install configparser')
+    import configparser
+from tools_parse_config import ParseConfig
+try:
+    from tools_config_manager import ConfigUpdater
+except:
+    msg = "Unable to find config file. Using defaults"
+    
+    print(msg)
+    
+    movavg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
+    
+    movavg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
+    
+    macd_periods_long_term = 26
+    
+    macd_periods_short_term = 12
+    
+    expma_periods = 9 
+
+try:
+    from tools_parse_config import ParseConfig
+except:
+    
+    msg = "Unable to find config file. Using defaults"
+    
+    print(msg)
+    
+    movavg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
+    
+    movavg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
+    
+    macd_periods_long_term = 26
+    
+    macd_periods_short_term = 12
+    
+    expma_periods = 9 
 
 stock = ""
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-exchange = "S&P500"
 
-DatCounter = 9000
-
-programName = "sp500"
-
-dataPace = "1d"
 #######################################
 # F U N C T I O N S 
 #######################################
-def changeTimeFrame(tf):
-    
-    global dataPace
-    
-    global DatCounter
-
 #-------------------------------------#
 def popupmsg(msg):
 #-------------------------------------#
@@ -45,28 +73,15 @@ def popupmsg(msg):
     
     label = ttk.Label(popup, text = msg)
     
-    label.pack(side = "top", fill = "x", pady = 10)
+    label.grid(row = 3, column = 5)
     
     B1 = ttk.Button(popup, text = "Okay", command = lambda: popup.destroy())
     
-    B1.pack()
+    B1.grid(row = 5, column = 5)
     
     popup.mainloop()
 
-#-------------------------------------#
-def changeExchange(toWhat, pn):
-#-------------------------------------#
-    global exchange
-    
-    global DatCounter
-    
-    global programName
 
-    exchange = toWhat
-    
-    programName = pn
-    
-    DatCounter = 9000
 
 
 #######################################
@@ -83,47 +98,18 @@ class SeaofBTCapp(tk.Tk):
 
         container = tk.Frame(self)
     
-        container.pack(side = "top", fill = "both", expand = True)
+        #container.pack(side = "top", fill = "both", expand = True)
+        container.grid(row =0, column = 0)
     
         container.grid_rowconfigure(0, weight = 1)
     
         container.grid_columnconfigure(0, weight = 1)
 
-        menubar = tk.Menu(container)
-    
-        filemenu = tk.Menu(menubar, tearoff = 0)
-    
-        filemenu.add_command(label = "Save Settings", command = lambda: popupmsg("Not Supported Yet."))
-    
-        filemenu.add_separator()
-    
-        filemenu.add_command(label = "Exit", command = quit)
-    
-        menubar.add_cascade(label = "File", menu = filemenu)
-
-        exchangeChoice = tk.Menu(menubar, tearoff = 1)
-    
-        exchangeChoice.add_command(label = 'S&P 500', command = lambda: changeExchange("SP500", "sp500"))
-    
-        exchangeChoice.add_command(label = 'NYSE', command = lambda: changeExchange("NYSE", "nyse"))
-    
-        menubar.add_cascade(label = "Exchange", menu = exchangeChoice)
-
-        dataTF = tk.Menu(menubar, tearoff = 1)
-    
-        dataTF.add_command(label = "Tick", command = lambda: changeTimeFrame('tick'))
-    
-        dataTF.add_command(label = "1 week", command = lambda: changeTimeFrame('7d'))
-    
-        dataTF.add_command(label = "1 Month", command = lambda: changeTimeFrame('30d'))
-    
-        menubar.add_cascade(label = "TimeSpan", menu = dataTF)               
-
-        tk.Tk.config(self, menu = menubar)
+        
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, PageGenerateGraph):
+        for F in (StartPage, PageGenerateGraph):
 
             frame = F(container, self)
 
@@ -149,11 +135,76 @@ class StartPage(tk.Frame):
     def __init__(self, parent, controller):
 #-------------------------------------#  
         tk.Frame.__init__(self, parent)
+
+        #-------------------------------------#
+        def update_mAST_config():
+        #-------------------------------------#
+            variable = mAST.get()
+            
+            a =  ConfigUpdater('movavg_window_days_short_term', variable)
+            
+            a.run()
+
+        #-------------------------------------#
+        def update_mALT_config():
+        #-------------------------------------#
+            variable = mALT.get()
+            
+            a =  ConfigUpdater('movavg_window_days_long_term', variable)
+            
+            a.run()
         
+        #-------------------------------------#
+        def update_mcST_config():
+        #-------------------------------------#
+            variable = mcST.get()
+            
+            a =  ConfigUpdater('macd_periods_short_term', variable)
+            
+            a.run()
+
+        #-------------------------------------#
+        def update_mcLT_config():
+        #-------------------------------------#
+            variable = mcLT.get()
+            
+            a =  ConfigUpdater('macd_periods_long_term', variable)
+            
+            a.run()
+            
+        #-------------------------------------#
+        def update_eMAT_config():
+        #-------------------------------------#
+            variable = eMAT.get()
+            
+            a =  ConfigUpdater('expma_periods', variable)
+            
+            a.run()
+            
+            
+        #-------------------------------------#
+        def update_rHT_config():
+        #-------------------------------------#
+            variable = rHT.get()
+            
+            a =  ConfigUpdater('rsi_overbought', variable)
+            
+            a.run()
+            
+            
+        #-------------------------------------#
+        def update_rLT_config():
+        #-------------------------------------#
+            variable = rLT.get()
+            
+            a =  ConfigUpdater('rsi_oversold', variable)
+            
+            a.run()
+
         #-------------------------------------#
         def get_entryText():
         #-------------------------------------#
-            p = e1.get()
+            p = eT1.get()
 
             if len(p) < 1:
 
@@ -194,80 +245,94 @@ class StartPage(tk.Frame):
             return p
 
 
-        label = tk.Label(self, text = "Search Stock Tool", font = ("Times", "24", "bold italic underline"))
+        label = tk.Label(self, text = "Stock Tracker Tool", font = ("Times", "24", "bold italic underline"))
         
-        label.pack(padx = 10, pady = 0)
+        label.grid(row = 1, column = 0, sticky = 'w')
 
-        entryText = tk.StringVar(self)
+        eT1_label = tk.Label(self,text="    Enter Stock here ", font = ("Courier New", "10", "bold"), width = 18)
         
+        eT1_label.grid(row = 4, column = 0, sticky = "w")
+
+        entryText        = tk.StringVar(self)
+        maShort_Tentry   = tk.StringVar(self)
+        maLong_Tentry    = tk.StringVar(self)
+        macdShort_Tentry = tk.StringVar(self)
+        macdLong_Tentry  = tk.StringVar(self)
+        ema_Tentry       = tk.StringVar(self)
+        rsiLow_Tentry    = tk.StringVar(self)
+        rsiHigh_Tentry   = tk.StringVar(self)
+
+
+
+        maShort_label   = tk.Label(self,text=" Mov. Avg. short:", font = ("Courier New", "8")).grid(row = 20, column = 0, sticky = 'nw')
+        maLong_label    = tk.Label(self,text="  Mov. Avg. long:", font = ("Courier New", "8")).grid(row = 22, column = 0, sticky = 'nw')
+        macdShort_label = tk.Label(self,text="     MACD  short:", font = ("Courier New", "8")).grid(row = 24, column = 0, sticky = 'nw')
+        macdLong_label  = tk.Label(self,text="       MACD long:", font = ("Courier New", "8")).grid(row = 26, column = 0, sticky = 'nw')
+        ema_label       = tk.Label(self,text="Expon. Mov. Avg.:", font = ("Courier New", "8")).grid(row = 28, column = 0, sticky = 'nw')
+        rsiLow_label    = tk.Label(self,text="         RSI low:", font = ("Courier New", "8")).grid(row = 30, column = 0, sticky = 'nw')
+        rsiHigh_label   = tk.Label(self,text="        RSI high:", font = ("Courier New", "8")).grid(row = 32, column = 0, sticky = 'nw')
+        
+ 
+        a = ParseConfig()
+        movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold = a.run()
+
         entryText.set('GOOG')
+        maShort_Tentry.set(movavg_window_days_short_term)
+        maLong_Tentry.set(movavg_window_days_long_term)
+        macdShort_Tentry.set(macd_periods_short_term)
+        macdLong_Tentry.set(macd_periods_long_term)
+        ema_Tentry.set(expma_periods)
+        rsiLow_Tentry.set(rsi_oversold)
+        rsiHigh_Tentry.set(rsi_overbought)
         
-        e1 = tk.Entry(self, textvariable = entryText)
 
-        e1.focus_set()
-        
-        e1_label = tk.Label(self,text="Enter Stock Symbol", font = ("Courier New", "10", "bold"))#.grid(row=0, column = 0)
-        
-        e1_label.pack(side = "top")
-        
-        e1.pack(side = "top")
-      
-        button1 = ttk.Button(self, text = "Accept Choice", command = get_entryText)
-
-        button1.pack(side = 'top')
-
-        button2 = ttk.Button(self, text = "Visit Page 2", command = lambda: controller.show_frame(PageTwo))
-
-        button2.pack(side = "bottom")
-
-        button3 = ttk.Button(self, text = "Generate Graph", command =  lambda: subprocess.call(["python", dir_path + "/" + "stocks_1.py", get_entryText() ]))#lambda: controller.show_frame(PageGenerateGraph))
-
-        button3.pack()
-
-        e2_label = tk.Label(self, text = "--> First daily run takes 7 minutes to build\n500 stocks datawarehouse.\nSee new folder \"askew\" to reference datawarehouse build <--", font = ("Monospace, 10"))
-
-        e2_label.pack(side = 'top')
+        eT1  = tk.Entry(self, textvariable = entryText,        width = 8)
+        mAST = tk.Entry(self, textvariable = maShort_Tentry,   width = 4)
+        mALT = tk.Entry(self, textvariable = maLong_Tentry,    width = 4)
+        mcST = tk.Entry(self, textvariable = macdShort_Tentry, width = 4)
+        mcLT = tk.Entry(self, textvariable = macdLong_Tentry,  width = 4)
+        eMAT = tk.Entry(self, textvariable = ema_Tentry,       width = 4)
+        rLT  = tk.Entry(self, textvariable = rsiLow_Tentry,    width = 4)
+        rHT  = tk.Entry(self, textvariable = rsiHigh_Tentry,   width = 4)
 
 
-#######################################
-class PageOne(tk.Frame):
-#######################################
-#-------------------------------------# 
-    def __init__(self, parent, controller):
-#-------------------------------------# 
-        tk.Frame.__init__(self, parent)
+        eT1.grid( row =  4, column = 0, sticky = "e")
+        separator_label1 = tk.Label(self, text = ' ').grid(row = 18, column = 0, sticky = 'w')
+        separator_label2 = tk.Label(self, text = '--------- Programmable Variables ---------').grid(row = 19, column = 0, sticky = 'w')
+        mAST.grid(row = 20, column = 0, sticky = "e")
+        mALT.grid(row = 22, column = 0, sticky = "e")
+        mcST.grid(row = 24, column = 0, sticky = "e")
+        mcLT.grid(row = 26, column = 0, sticky = "e")
+        eMAT.grid(row = 28, column = 0, sticky = "e")
+        rLT.grid( row = 30, column = 0, sticky = "e")
+        rHT.grid( row = 32, column = 0, sticky = "e")
 
-        label = tk.Label(self, text = "Start Page", font = "LARGE_FONT")
 
-        label.pack(padx = 10, pady = 10)
+        buttonmAST = ttk.Button(self, text = "Update", command = update_mAST_config).grid(row = 20, column = 1, sticky = 'w')
+        buttonmALT = ttk.Button(self, text = "Update", command = update_mALT_config).grid(row = 22, column = 1, sticky = 'w')
+        buttonmcST = ttk.Button(self, text = "Update", command = update_mcST_config).grid(row = 24, column = 1, sticky = 'w')
+        buttonmcLT = ttk.Button(self, text = "Update", command = update_mcLT_config).grid(row = 26, column = 1, sticky = 'w')
+        buttoneMAT = ttk.Button(self, text = "Update", command = update_eMAT_config).grid(row = 28, column = 1, sticky = 'w')
+        buttonrLT  = ttk.Button(self, text = "Update", command = update_rLT_config).grid( row = 30, column = 1, sticky = 'w')
+        buttonrHT  = ttk.Button(self, text = "Update", command = update_rHT_config).grid( row = 32, column = 1, sticky = 'w')
 
-        button1 = ttk.Button(self, text = "Back to Home", command = lambda: controller.show_frame(StartPage))
 
-        button1.pack()
+        eT1.focus_set()
+              
+        buttonAccept = ttk.Button(self, text = "Accept Choice", command = get_entryText)
 
-        button2 = ttk.Button(self, text = "Visit PageTwo", command = lambda: controller.show_frame(PageTwo))
+        buttonAccept.grid(row = 4, column = 1, sticky = 'w')
 
-        button2.pack()
+        buttonGraph = ttk.Button(self, text = "Generate Graph", command =  lambda: subprocess.call(["python", dir_path + "/" + "stocks_1.py", get_entryText() ]))#lambda: controller.show_frame(PageGenerateGraph))
 
-#######################################
-class PageTwo(tk.Frame):
-#######################################
-#-------------------------------------# 
-    def __init__(self, parent, controller):
-#-------------------------------------# 
-        tk.Frame.__init__(self, parent)
+        buttonGraph.grid(row = 10, column = 1, sticky = 'w')
 
-        label = tk.Label(self, text = "Start Page", font = "LARGE_FONT")
+        e2_label = tk.Label(self, text = "First daily run takes 7 minutes\nto build the 500 stocks datawarehouse.\n New folder \"askew\" holds the build.", font = ("Monospace, 10"))
 
-        label.pack(padx = 10, pady = 10)
+        e2_label.grid(row = 12, column = 0, sticky = 'nw')
 
-        button1 = ttk.Button(self, text = "Back to Home", command = lambda: controller.show_frame(StartPage))
 
-        button1.pack()
 
-        button2 = ttk.Button(self, text = "Visit PageOne", command = lambda: controller.show_frame(PageOne))
-
-        button2.pack()
 
 #######################################
 class PageGenerateGraph(tk.Frame):
@@ -279,12 +344,9 @@ class PageGenerateGraph(tk.Frame):
 
         label = tk.Label(self, text = "Graph Page", font = "LARGE_FONT")
 
-        label.pack(padx = 10, pady = 10)
+        label.grid(row = 5, column = 5)
 
-        button1 = ttk.Button(self, text = "Back to Home", command = lambda: controller.show_frame(StartPage))
-
-        button1.pack()
-       
+         
 
 #######################################
 # M A I N   L O G I C   S T A R T
@@ -292,7 +354,7 @@ class PageGenerateGraph(tk.Frame):
 
 app = SeaofBTCapp()
 
-app.geometry("360x240")
+app.geometry("360x360")
 
 app.mainloop()
 
