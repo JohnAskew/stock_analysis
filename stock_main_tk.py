@@ -264,13 +264,13 @@ class StartPage(tk.Frame):
 
 
 
-        maShort_label   = tk.Label(self,text=" Mov. Avg. short:", font = ("Courier New", "8")).grid(row = 20, column = 0, sticky = 'nw')
-        maLong_label    = tk.Label(self,text="  Mov. Avg. long:", font = ("Courier New", "8")).grid(row = 22, column = 0, sticky = 'nw')
-        macdShort_label = tk.Label(self,text="     MACD  short:", font = ("Courier New", "8")).grid(row = 24, column = 0, sticky = 'nw')
-        macdLong_label  = tk.Label(self,text="       MACD long:", font = ("Courier New", "8")).grid(row = 26, column = 0, sticky = 'nw')
-        ema_label       = tk.Label(self,text="Expon. Mov. Avg.:", font = ("Courier New", "8")).grid(row = 28, column = 0, sticky = 'nw')
-        rsiLow_label    = tk.Label(self,text="         RSI low:", font = ("Courier New", "8")).grid(row = 30, column = 0, sticky = 'nw')
-        rsiHigh_label   = tk.Label(self,text="        RSI high:", font = ("Courier New", "8")).grid(row = 32, column = 0, sticky = 'nw')
+        maShort_label   = tk.Label(self,text="    Moving Average days (short):", font = ("Courier New", "8")).grid(row = 20, column = 0, sticky = 'nw')
+        maLong_label    = tk.Label(self,text="     Moving Average days (long):", font = ("Courier New", "8")).grid(row = 22, column = 0, sticky = 'nw')
+        macdShort_label = tk.Label(self,text="Mov Avg Cnvg/DeCnvg short cycle:", font = ("Courier New", "8")).grid(row = 24, column = 0, sticky = 'nw')
+        macdLong_label  = tk.Label(self,text="Mov Avg Cnvg/DeCnvg long cycle:", font = ("Courier New", "8")).grid(row = 26, column = 0, sticky = 'nw')
+        ema_label       = tk.Label(self,text="Exponential Moving Avg Periods:", font = ("Courier New", "8")).grid(row = 28, column = 0, sticky = 'nw')
+        rsiLow_label    = tk.Label(self,text=" Relative Strength Index % low:", font = ("Courier New", "8")).grid(row = 30, column = 0, sticky = 'nw')
+        rsiHigh_label   = tk.Label(self,text="Relative Strength Index % high:", font = ("Courier New", "8")).grid(row = 32, column = 0, sticky = 'nw')
         
  
         a = ParseConfig()
