@@ -1,4 +1,33 @@
 #! python3
+''' Modified the SentDex stock graphing solution found on YouTube.
+https://www.pythonprogramming.net/
+http://www.sentdex.com/
+
+Added GUI, Configuration (ini), Sentiment Analysis and Similar stocks.
+Additional software written by John "Bucbowie" Askew. I take full 
+responsibility for any bugs or design flaws and by no means is 
+meant to represent the brand "SentDex", nor https://www.pythonprogramming.net/.
+
+TTTTTTTTTT         D D
+    TT             D   D
+    TT             D     D
+    TT  ooooo  --  D     D  ooooo
+    TT  o   o      D   D    o   o
+    TT  00000      D D      ooooo
+
+1. Add Standard Deviation to Sentiment Score for explaining variance.
+   The broader the standard deviation, the wilder or spread out the
+     the individual points were. The cumulative score does not paint
+       a clear data representation and interpetation.
+
+2. Format the Sentiment and Subjectivity scores found on the plot legend,
+     to only display decimal(7,4).
+
+3. Yellow buy bands for RSI score < 30%.
+
+4. Convert OHLC to Heiken Ashi OHLC (See Formulaz)
+
+'''
 import os
 
 try:
@@ -19,7 +48,9 @@ except:
     expma_periods = 9 
 
 from formulas import *
+
 from tools_scrape import *
+
 from tools_get_stock_corr import corr
 
 try:
@@ -36,82 +67,151 @@ except:
 # modules needed to run this script
 #------------------------------------#
 try:
+
     import csv
+
 except:
+
     os.system("pip3 install csv")
+
     import csv
 
 import datetime as dt
+
 from datetime import timedelta
+
 try:
+
     import requests
+
 except:
+
     os.system('pip install requests')
+
     import requests
+
 try:
+
     import matplotlib as mpl
+
 except:
+
     os.system('pip3 install matplotlib')
+
     import matplotlib as mpl
+
 try:
+
     import matplotlib.pyplot as plt
+
 except:
+
     os.system("pip3 install matplotlib")
+
     import matplotlib.pyplot as plt
 
 from  matplotlib import style
+
 import matplotlib.ticker as mticker
+
 import matplotlib.dates as mdates
+
 try:
+
     import mpl_finance
+
 except:
+
     os.system('pip3 install mpl_finance')
+
     import mpl_finance
+
 from  mpl_finance import candlestick_ohlc
 
 from matplotlib.widgets import Button
 
 try:
+
     import pandas as pd
+
 except:
+
     os.system('pip3 install pandas')
+
     import pandas as pd
+
 try:
+
     import numpy as np
+
 except:
+
     os.system("pip3 install numpy")
+
     import numpy as np
+
 try:
+
     import pandas_datareader.data as web
+
 except:
+
     os.system("pip3 install pandas-datareader")
+
     import pandas_datareader.data as web
+
 try:
+
     from pylab import *
+
 except:
+
     os.system('pip install pylab')
+
     from pylab import *
+
 try:
+
     import re
+
 except:
+
     os.system("pip3 install re")
+
     import re
+
 try:
+
     import getpass
+
 except:
+
     os.system('pip install getpass')
+
     import getpass
+
 try:
+
     import subprocess
+
 except:
+
     os.system("pip install subprocess")
+
     import subprocess
+
 import sys
+
 try:
+
     from datetime import datetime, timedelta
+
 except:
+
     os.system("pip3 install datetime")
+
     from datetime import datetime, timedelta
+
 import time
 
 from pandas.plotting import register_matplotlib_converters
@@ -295,13 +395,14 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 #-----------------------------------#
 # Grab Dates
 #-----------------------------------#
+
 start = ( dt.datetime.now() - dt.timedelta(days = 365) )       # Format is year, month, day
 
 end = dt.datetime.today()           # format of today() = [yyyy, mm, dd] - list of integers
+
 #-----------------------------------#
 # Set up place to save spreadsheet
 #-----------------------------------#
-               # move into the newly created sub-dir
 
 try:
 
@@ -552,9 +653,6 @@ ax1_macd.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'bl
 ax1_macd.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0., fontsize = 6.0)
 
 
-
-
-
 ### ax1_vol
 ##
 ax1_vol.tick_params(axis = 'x', colors = '#890b86')
@@ -735,6 +833,8 @@ ax_b.plot([],[], linewidth = 2, label = str(movavg_window_days_short_term)+'d mo
 
 ax_b.plot([],[], linewidth = 2, label = str(movavg_window_days_long_term)+'d mov. avg.' , color = 'k', alpha = 0.9)
 
+ax_b.plot([],[], linewidth = 2, label = 'mov. avg. ' + str(movavg_window_days_short_term)+'d upswing (buy)' , color = 'yellow', alpha = 0.9)
+
 ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
 ax_b.set_ylabel( ax1_subject + ' Price and Composite ', fontsize=8, fontweight =5, color = 'r')
@@ -863,10 +963,14 @@ df_plot['sentiment'] = x_plot_list
 
 df_plot['subjectivity'] = y_plot_list
 
+''' Calculate the sentiment standard deviation.'''
+
+sentiment_np_array = np.array((x_plot_list))
+
+sentiment_std_dev  = np.std(sentiment_np_array)
 
 
-
-ax2_sent.plot(sentiment, subjectivity, '*', label='Sentiment Points', color = 'red', linewidth = 1)
+ax2_sent.plot(sentiment, subjectivity, '*', label='Sentiment Color Key', color = 'red', linewidth = 1)
 
 set_spines(ax2_sent)
 
@@ -886,21 +990,26 @@ ax2_sent.set_title("(neg) <-- " + ax1_subject + " Sentiment Score --> (pos)", co
 
 ax2_sent.set_ylabel('Subjectivity', fontsize=8, fontweight =5, color = '#890b86')
 
-ax2_sent.axhline(0, color = 'k', linewidth = 2, label = '0.0 = Neutral')
 
-ax2_sent.plot([],[], linewidth = 2, label = 'Sentiment: ' + str(sentiment) , color = 'red', alpha = 0.9)
+ax2_sent.plot([],[], linewidth = 2, label = 'Sentiment: ' +  "{0:.4f}".format(round(sentiment,4) ) , color = 'red', alpha = 0.9)
 
-ax2_sent.plot([],[], linewidth = 2, label = 'Subjectivity: ' + str(subjectivity) , color = 'red', alpha = 0.9)
+ax2_sent.plot([],[], linewidth = 2, label = 'Subjectivity: ' + "{0:.4f}".format(round(subjectivity,4) ), color = 'red', alpha = 0.9)
+
+ax2_sent.plot([],[], linewidth = 2, label = 'Std. Dev (Sentiment): ' + "{0:.4f}".format(round(sentiment_std_dev,4) ), color = 'darkblue', alpha = 0.9, marker = '+')
+
+ax2_sent.axhline(y=0, color = 'yellow', linewidth = 2, label = 'x=0: Neutral')
 
 ax2_sent.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
 
 
-ax2_sent_plots.plot(df_plot['sentiment'], df_plot['subjectivity'], '*', color = 'blue')
+ax2_sent_plots.plot(df_plot['sentiment'], df_plot['subjectivity'], '*', color = 'red')
 
 ax2_sent_plots.plot([],[], linewidth = 2, label = 'Neutral' , color = 'k', alpha = 0.9)
 
 ax2_sent_plots.axhline(0, color = 'yellow', linewidth = 1)
+
+ax2_sent_plots.axhline(sentiment_std_dev, color = 'darkblue', linewidth = 1)
 
 rotate_xaxis(ax2_sent_plots)
 
@@ -932,7 +1041,7 @@ rotate_xaxis(ax_sent_chart)
 
 set_spines(ax_sent_chart)
 
-ax_sent_chart.axvline(x = 0, linewidth = 1,  color = 'yellow')
+ax_sent_chart.axvline(x = 0, linewidth = 2,  color = 'yellow')
 
 #ax2_sent_plots.set_ylim(0, 1)
 ax_sent_chart.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
