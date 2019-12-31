@@ -15,14 +15,6 @@ TTTTTTTTTT         D D
     TT  o   o      D   D    o   o
     TT  00000      D D      ooooo
 
-1. Add Standard Deviation to Sentiment Score for explaining variance.
-   The broader the standard deviation, the wilder or spread out the
-     the individual points were. The cumulative score does not paint
-       a clear data representation and interpetation.
-
-2. Format the Sentiment and Subjectivity scores found on the plot legend,
-     to only display decimal(7,4).
-
 3. Yellow buy bands for RSI score < 30%.
 
 4. Convert OHLC to Heiken Ashi OHLC (See Formulaz)
@@ -243,6 +235,27 @@ rsi_oversold                  = int(rsi_oversold)
 ########################################################
 # Functions (before Main Logic)
 ########################################################
+#-------------------------------------#
+def popupmsg(msg):
+#-------------------------------------#
+    import tkinter as tk
+
+    from tkinter import ttk
+
+    popup = tk.Tk()
+    
+    popup.wm_title(" Warning!")
+    
+    label = ttk.Label(popup, text = msg)
+    
+    label.grid(row = 3, column = 5)
+    
+    B1 = ttk.Button(popup, text = "Okay", command = lambda: popup.destroy())
+    
+    B1.grid(row = 5, column = 5)
+    
+    popup.mainloop()
+
 #-------------------------------------------------------#
 def calc_rsi(prices, n=14):
 #-------------------------------------------------------#
@@ -503,8 +516,13 @@ ax3_sim_stock3.set_visible(False)
 # Populate Data
 ########################################################
 os.chdir(myPath)
-
-df = pd.read_csv((ax1_subject + '.csv'), parse_dates=True, index_col =0)
+try:
+    df = pd.read_csv((ax1_subject + '.csv'), parse_dates=True, index_col =0)
+except Exception as e:
+    print("stocks_1.py did not find", ax1_subject, "information. As it's not in the datawarehouse, is the ticker symbol spelled correctly?")
+    print(e)
+    popupmsg("Symbol " + ax1_subject + " is not found! -- Spelling?")
+    sys.exit(0)
 
 df_ohlc = df['Adj_Close'].resample('10D').ohlc()
 
@@ -997,7 +1015,7 @@ ax2_sent.plot([],[], linewidth = 2, label = 'Subjectivity: ' + "{0:.4f}".format(
 
 ax2_sent.plot([],[], linewidth = 2, label = 'Std. Dev (Sentiment): ' + "{0:.4f}".format(round(sentiment_std_dev,4) ), color = 'darkblue', alpha = 0.9, marker = '+')
 
-ax2_sent.axhline(y=0, color = 'yellow', linewidth = 2, label = 'x=0: Neutral')
+ax2_sent.axhline(y=0, color = 'yellow', linewidth = 2, label = '0=Neutral')
 
 ax2_sent.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
