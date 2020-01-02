@@ -15,6 +15,10 @@ TTTTTTTTTT         D D
     TT  o   o      D   D    o   o
     TT  00000      D D      ooooo
 
+1. Figure out stock clustering--> Long term replace correlation, or supplement it.
+
+2. Add Percent Change chart - if there is value (let user determine denomintor
+)
 3. Yellow buy bands for RSI score < 30%.
 
 4. Convert OHLC to Heiken Ashi OHLC (See Formulaz)
@@ -54,10 +58,13 @@ except:
     print("       Web Sentiment Analysis using")
     print("       stock symbol and not company name!")
     print("#########################################")
-#------------------------------------#
-# This section will install python 
-# modules needed to run this script
-#------------------------------------#
+
+try:
+    from stocks_alt_info import altAnalysis
+except Exception as e:
+    print("Unable to access python module stocks_alt_info. Skipping financial details and continuing on...")
+    print(e)
+
 try:
 
     import csv
@@ -108,6 +115,7 @@ import matplotlib.ticker as mticker
 
 import matplotlib.dates as mdates
 
+
 try:
 
     import mpl_finance
@@ -119,6 +127,8 @@ except:
     import mpl_finance
 
 from  mpl_finance import candlestick_ohlc
+
+from mpl_toolkits.mplot3d import Axes3D
 
 from matplotlib.widgets import Button
 
@@ -453,7 +463,7 @@ except:
 ## Let's define our canvas, before we go after the data
 ## Odd numbers (ex. ax1_vol) are for stock 1. Even = stock 2.
 #########################################################
-plot_row = 18 + 122 #98
+plot_row = 18 + 122 + 35 #98 Askew 20
 
 plot_col = 20
 
@@ -474,7 +484,7 @@ ax1_macd = plt.subplot2grid((plot_row,plot_col), (86, 0), rowspan = 10, colspan 
 
 ax1_vol  = plt.subplot2grid((plot_row,plot_col), (109,0), rowspan = 10, colspan = 4, sharex = ax1_year)
 
-ax1_tot  = plt.subplot2grid((plot_row,plot_col), (134,0), rowspan = 10, colspan = 2)
+ax1_tot  = plt.subplot2grid((plot_row,plot_col), (152,0), rowspan = 300, colspan = 3)
 
 
 ax_a    = plt.subplot2grid((plot_row,plot_col), (0,  6), rowspan = 12, colspan = 6)
@@ -523,6 +533,9 @@ except Exception as e:
     print(e)
     popupmsg("Symbol " + ax1_subject + " is not found! -- Spelling?")
     sys.exit(0)
+'''
+Capture OHLC before resetting index
+'''
 
 df_ohlc = df['Adj_Close'].resample('10D').ohlc()
 
@@ -539,6 +552,7 @@ mA_Short = moving_average(df['Adj_Close'], movavg_window_days_short_term)
 mA_Long = moving_average(df['Adj_Close'], movavg_window_days_long_term)
 
 start = len(df['Date'][movavg_window_days_long_term - 1:])
+
 ########################################################
 #Start Plotting
 ########################################################
@@ -668,7 +682,7 @@ ax1_macd.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd
 
 ax1_macd.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'blue')
 
-ax1_macd.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0., fontsize = 6.0)
+ax1_macd.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0., fontsize = 6.0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
 
 ### ax1_vol
@@ -702,24 +716,33 @@ last_vol  = df['Volume'].iloc[-1]
 
 last_close = df['Close'].iloc[-1]
 
+
+
+#--------------------------------------#
+# F I N A N C I A L   D E T A I L S
+#   scrunched up to fit the frame
+#--------------------------------------#
+a = altAnalysis(ax1_subject)
+
+company_json = a.run()
+
 hide_frame(ax1_tot)
 
-ax1_tot.text(1,1,'Open:' + '{:20,.2f}'.format(last_open) + '     ', verticalalignment='bottom', horizontalalignment='left',
-         color='darkblue', fontsize=8)
+other_DETAILS_List = []
 
-ax1_tot.text(1,1,'Close:' + '{:20,.2f}'.format(last_close), verticalalignment='top', horizontalalignment='left',
-         color='darkblue', fontsize=8)
+for sTOCK, value in company_json['OTHER_DETAILS'].items():
 
-ax1_tot.text(1,1,'High:' + '{:20,.2f}'.format(last_high) + '     ', verticalalignment='bottom', horizontalalignment='right',
-         color='darkblue', fontsize=8)
+    other_DETAILS_List.append(sTOCK + " : " + str(value))
 
-ax1_tot.text(1,1,'Low:' + '{:20,.2f}'.format(last_low)+ '     ', verticalalignment='top', horizontalalignment='right',
-         color='darkblue', fontsize=8)
-ax1_tot.text(0.5,0.25, "Diff:" + str('{:5,.2f}'.format(last_high - last_low)), verticalalignment='bottom', horizontalalignment='left',
-         color='darkblue', fontsize=8)
+cnt_DETAILS = float(0.0) #len(company_json)
 
-ax1_tot.text(0.5,0.25,"                                    Diff:" + str('{:5,.2f}'.format(last_close - last_open)), verticalalignment='bottom', horizontalalignment='left',
-         color='darkblue', fontsize=8)
+for i in sorted(other_DETAILS_List, reverse = True):
+
+    i = str(i) #.strip()
+
+    ax1_tot.text(0,cnt_DETAILS, i, verticalalignment='top', horizontalalignment='left', color='darkblue', fontsize=6)
+
+    cnt_DETAILS += 0.150
 
 '''
 Extract what is needed for candlestick_ohlc AND
@@ -851,19 +874,19 @@ ax_b.plot([],[], linewidth = 2, label = str(movavg_window_days_short_term)+'d mo
 
 ax_b.plot([],[], linewidth = 2, label = str(movavg_window_days_long_term)+'d mov. avg.' , color = 'k', alpha = 0.9)
 
-ax_b.plot([],[], linewidth = 2, label = 'mov. avg. ' + str(movavg_window_days_short_term)+'d upswing (buy)' , color = 'yellow', alpha = 0.9)
+ax_b.plot([],[], linewidth = 2, label = 'original mov. avg. golden cross(buy)' , color = 'yellow', alpha = 0.9)
 
 ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
 ax_b.set_ylabel( ax1_subject + ' Price and Composite ', fontsize=8, fontweight =5, color = 'r')
 
-filter1 = len(df['MA30'].fillna(0)) > 0 & len(df[['MA30'][-1]].fillna(0)) > 0
+filter2 = df['MA10'] >  df['MA30']
 
-filter2 = df['MA10'] >  df['MA30'] 
+#DEBUG print( df['Date'] + dt.timedelta(days = movavg_window_days_short_term))
 
 filter3 = df['MA10'].shift(1) <= df['MA30'].shift(1)
 
-start_xz = ( dt.datetime.now() - dt.timedelta(days = 365) )
+start_xz = ( dt.datetime.now() - dt.timedelta(days = 365))
 
 xz = df.where(filter2 & filter3).fillna(start_xz)
 
@@ -1018,7 +1041,6 @@ ax2_sent.plot([],[], linewidth = 2, label = 'Std. Dev (Sentiment): ' + "{0:.4f}"
 ax2_sent.axhline(y=0, color = 'yellow', linewidth = 2, label = '0=Neutral')
 
 ax2_sent.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
-
 
 
 ax2_sent_plots.plot(df_plot['sentiment'], df_plot['subjectivity'], '*', color = 'red')
@@ -1234,4 +1256,4 @@ fig.suptitle(user + " Stock Page", fontsize=14)
 
 plt.show()
 
-fig.savefig(ax1_subject + '.png')
+#fig.savefig(ax1_subject + '.png')

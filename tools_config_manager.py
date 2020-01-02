@@ -15,11 +15,7 @@ class ConfigUpdater:
 
         self.config.read('config.py')
 
-        print("tools_config_manager.py --",self.config['DEFAULT'][self.parameter])
-
         self.config.set('DEFAULT', self.parameter, self.variable)
-
-        print("tools_config_manager.py --", self.config['DEFAULT'][self.parameter])
 
         with open('config.py', 'w') as configfile:
             self.config.write(configfile)

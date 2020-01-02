@@ -85,7 +85,7 @@ def popupmsg(msg):
 
 
 #######################################
-class SeaofBTCapp(tk.Tk):
+class SeaofSTOXapp(tk.Tk):
 #######################################
 #-------------------------------------#
     def __init__(self, *args, **kwargs): #args = any num variables; same kwargs
@@ -97,8 +97,7 @@ class SeaofBTCapp(tk.Tk):
         tk.Tk.wm_title(self, "Search Stock client")
 
         container = tk.Frame(self)
-    
-        #container.pack(side = "top", fill = "both", expand = True)
+
         container.grid(row =0, column = 0)
     
         container.grid_rowconfigure(0, weight = 1)
@@ -126,6 +125,7 @@ class SeaofBTCapp(tk.Tk):
         frame = self.frames[cont]
 
         frame.tkraise()
+        frame.config(bg = frame_bg) ##FFFFFA')
 
 
 #######################################
@@ -245,11 +245,11 @@ class StartPage(tk.Frame):
             return p
 
 
-        label = tk.Label(self, text = "Stock Tracker Tool", font = ("Times", "24", "bold italic underline"))
+        label = tk.Label(self, text = "Stock Tracker Tool", fg = label_big_fg, bg = label_big_bg, font = ("Times", "24", "bold italic underline"))
         
         label.grid(row = 1, column = 0, sticky = 'w')
 
-        eT1_label = tk.Label(self,text="    Enter Stock here ", font = ("Courier New", "10", "bold"), width = 18)
+        eT1_label = tk.Label(self,text="Enter Stock Symbol here ==>  ", fg = label_fg_red, bg = label_bg, font = ("Courier New", "10", "bold"), width = 35)
         
         eT1_label.grid(row = 4, column = 0, sticky = "w")
 
@@ -264,13 +264,13 @@ class StartPage(tk.Frame):
 
 
 
-        maShort_label   = tk.Label(self,text="    Moving Average days (short):", font = ("Courier New", "8")).grid(row = 20, column = 0, sticky = 'nw')
-        maLong_label    = tk.Label(self,text="     Moving Average days (long):", font = ("Courier New", "8")).grid(row = 22, column = 0, sticky = 'nw')
-        macdShort_label = tk.Label(self,text="Mov Avg Cnvg/DeCnvg short cycle:", font = ("Courier New", "8")).grid(row = 24, column = 0, sticky = 'nw')
-        macdLong_label  = tk.Label(self,text="Mov Avg Cnvg/DeCnvg long cycle:", font = ("Courier New", "8")).grid(row = 26, column = 0, sticky = 'nw')
-        ema_label       = tk.Label(self,text="Exponential Moving Avg Periods:", font = ("Courier New", "8")).grid(row = 28, column = 0, sticky = 'nw')
-        rsiLow_label    = tk.Label(self,text=" Relative Strength Index % low:", font = ("Courier New", "8")).grid(row = 30, column = 0, sticky = 'nw')
-        rsiHigh_label   = tk.Label(self,text="Relative Strength Index % high:", font = ("Courier New", "8")).grid(row = 32, column = 0, sticky = 'nw')
+        maShort_label   = tk.Label(self,text="    Moving Average days (short):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 20, column = 0, sticky = 'nw')
+        maLong_label    = tk.Label(self,text="     Moving Average days (long):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 22, column = 0, sticky = 'nw')
+        macdShort_label = tk.Label(self,text="Mov Avg Cnvg/DeCnvg short cycle:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 24, column = 0, sticky = 'nw')
+        macdLong_label  = tk.Label(self,text="Mov Avg Cnvg/DeCnvg long cycle:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 26, column = 0, sticky = 'nw')
+        ema_label       = tk.Label(self,text="Exponential Moving Avg Periods:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 28, column = 0, sticky = 'nw')
+        rsiLow_label    = tk.Label(self,text=" Relative Strength Index % low:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 30, column = 0, sticky = 'nw')
+        rsiHigh_label   = tk.Label(self,text="Relative Strength Index % high:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 32, column = 0, sticky = 'nw')
         
  
         a = ParseConfig()
@@ -286,19 +286,19 @@ class StartPage(tk.Frame):
         rsiHigh_Tentry.set(rsi_overbought)
         
 
-        eT1  = tk.Entry(self, textvariable = entryText,        width = 8)
-        mAST = tk.Entry(self, textvariable = maShort_Tentry,   width = 4)
-        mALT = tk.Entry(self, textvariable = maLong_Tentry,    width = 4)
-        mcST = tk.Entry(self, textvariable = macdShort_Tentry, width = 4)
-        mcLT = tk.Entry(self, textvariable = macdLong_Tentry,  width = 4)
-        eMAT = tk.Entry(self, textvariable = ema_Tentry,       width = 4)
-        rLT  = tk.Entry(self, textvariable = rsiLow_Tentry,    width = 4)
-        rHT  = tk.Entry(self, textvariable = rsiHigh_Tentry,   width = 4)
+        eT1  = tk.Entry(self, textvariable = entryText,        width = 8, fg = entry_fg, bg = entry_bg)
+        mAST = tk.Entry(self, textvariable = maShort_Tentry,   width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        mALT = tk.Entry(self, textvariable = maLong_Tentry,    width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        mcST = tk.Entry(self, textvariable = macdShort_Tentry, width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        mcLT = tk.Entry(self, textvariable = macdLong_Tentry,  width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        eMAT = tk.Entry(self, textvariable = ema_Tentry,       width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        rLT  = tk.Entry(self, textvariable = rsiLow_Tentry,    width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        rHT  = tk.Entry(self, textvariable = rsiHigh_Tentry,   width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
 
 
         eT1.grid( row =  4, column = 0, sticky = "e")
         separator_label1 = tk.Label(self, text = ' ').grid(row = 18, column = 0, sticky = 'w')
-        separator_label2 = tk.Label(self, text = '--------- Programmable Variables ---------').grid(row = 19, column = 0, sticky = 'w')
+        separator_label2 = tk.Label(self, text = '--------- Programmable Variables ---------', bg = label_separator_bg, fg = label_separator_fg, font = ("Courier New", "9", "bold")).grid(row = 19, column = 0, sticky = 'w')
         mAST.grid(row = 20, column = 0, sticky = "e")
         mALT.grid(row = 22, column = 0, sticky = "e")
         mcST.grid(row = 24, column = 0, sticky = "e")
@@ -308,26 +308,26 @@ class StartPage(tk.Frame):
         rHT.grid( row = 32, column = 0, sticky = "e")
 
 
-        buttonmAST = ttk.Button(self, text = "Update", command = update_mAST_config).grid(row = 20, column = 1, sticky = 'w')
-        buttonmALT = ttk.Button(self, text = "Update", command = update_mALT_config).grid(row = 22, column = 1, sticky = 'w')
-        buttonmcST = ttk.Button(self, text = "Update", command = update_mcST_config).grid(row = 24, column = 1, sticky = 'w')
-        buttonmcLT = ttk.Button(self, text = "Update", command = update_mcLT_config).grid(row = 26, column = 1, sticky = 'w')
-        buttoneMAT = ttk.Button(self, text = "Update", command = update_eMAT_config).grid(row = 28, column = 1, sticky = 'w')
-        buttonrLT  = ttk.Button(self, text = "Update", command = update_rLT_config).grid( row = 30, column = 1, sticky = 'w')
-        buttonrHT  = ttk.Button(self, text = "Update", command = update_rHT_config).grid( row = 32, column = 1, sticky = 'w')
+        buttonmAST = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mAST_config).grid(row = 20, column = 1, sticky = 'e')
+        buttonmALT = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mALT_config).grid(row = 22, column = 1, sticky = 'e')
+        buttonmcST = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mcST_config).grid(row = 24, column = 1, sticky = 'e')
+        buttonmcLT = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mcLT_config).grid(row = 26, column = 1, sticky = 'e')
+        buttoneMAT = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_eMAT_config).grid(row = 28, column = 1, sticky = 'e')
+        buttonrLT  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rLT_config).grid( row = 30, column = 1, sticky = 'e')
+        buttonrHT  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rHT_config).grid( row = 32, column = 1, sticky = 'e')
 
 
         eT1.focus_set()
               
-        buttonAccept = ttk.Button(self, text = "Accept Choice", command = get_entryText)
+        buttonAccept = tk.Button(self, text = "Accept Choice", fg = 'red', bg = button_bg, command = get_entryText)
+        
+        buttonAccept.grid(row = 4, column = 1, sticky = 'e')
 
-        buttonAccept.grid(row = 4, column = 1, sticky = 'w')
+        buttonGraph = tk.Button(self, text = " Create Graph ", fg = button_fg, bg = button_bg, command =  lambda: subprocess.call(["python", dir_path + "/" + "stocks_1.py", get_entryText() ]))#lambda: controller.show_frame(PageGenerateGraph))
 
-        buttonGraph = ttk.Button(self, text = "Generate Graph", command =  lambda: subprocess.call(["python", dir_path + "/" + "stocks_1.py", get_entryText() ]))#lambda: controller.show_frame(PageGenerateGraph))
+        buttonGraph.grid(row = 10, column = 1, sticky = 'e')
 
-        buttonGraph.grid(row = 10, column = 1, sticky = 'w')
-
-        e2_label = tk.Label(self, text = "First daily run takes 7 minutes\nto build the 500 stocks datawarehouse.\n New folder \"askew\" holds the build.", font = ("Monospace, 10"))
+        e2_label = tk.Label(self, fg = color_verbose, bg = label_bg, text = "First daily run takes 7 minutes\nto build the 500 stocks datawarehouse.\n New folder \"askew\" holds the build.", font = ("Monospace, 10"))
 
         e2_label.grid(row = 12, column = 0, sticky = 'nw')
 
@@ -351,10 +351,39 @@ class PageGenerateGraph(tk.Frame):
 #######################################
 # M A I N   L O G I C   S T A R T
 #######################################
+color_melon  = '#F53335'
+color_purple = '#890b86'
+color_black  = '#0F0F0A'
+color_red    = 'red'
+color_white  = '#FFFFFA'
+color_blue   = 'blue'
+color_gray   = 'lavender'#'floralwhite'
+color_verbose = 'lemonchiffon' #antiquewhite'
+color_firebrick = 'turquoise2' #steelblue2'
 
-app = SeaofBTCapp()
+frame_fg = color_black
+frame_bg = color_purple #black
+label_fg = color_white #'#FFFFFA'
+label_bg = color_purple #black
+label_big_fg = color_black
+label_big_bg = color_purple
+label_fg_red = color_verbose
+label_separator_fg = color_firebrick
+label_separator_bg = color_purple
+entry_fg     = color_red
+entry_bg     = color_white
+entry2_fg    = color_blue
+entry2_bg    = color_gray
+button_fg    = color_blue
+button_bg    = color_gray
 
-app.geometry("360x360")
+# style = ttk.Style()
+
+# style.configure("But.ton", foreground = button_fg, background = button_bg)
+
+app = SeaofSTOXapp()
+
+app.geometry("390x375")
 
 app.mainloop()
 
