@@ -92,7 +92,8 @@ class SeaofSTOXapp(tk.Tk):
 #-------------------------------------#    
         tk.Tk.__init__(self, *args, **kwargs)
 
-        tk.Tk.iconbitmap(self, default = "py.ico")
+        if os.name == 'nt':
+            tk.Tk.iconbitmap(self, default = "py.ico")
     
         tk.Tk.wm_title(self, "Search Stock client")
 
@@ -323,7 +324,7 @@ class StartPage(tk.Frame):
         
         buttonAccept.grid(row = 4, column = 1, sticky = 'e')
 
-        buttonGraph = tk.Button(self, text = " Create Graph ", fg = button_fg, bg = button_bg, command =  lambda: subprocess.call(["python", dir_path + "/" + "stocks_1.py", get_entryText() ]))#lambda: controller.show_frame(PageGenerateGraph))
+        buttonGraph = tk.Button(self, text = " Create Graph ", fg = button_fg, bg = button_bg, command =  lambda: subprocess.call(["python3", dir_path + "/" + "stocks_1.py", get_entryText() ]))#lambda: controller.show_frame(PageGenerateGraph))
 
         buttonGraph.grid(row = 10, column = 1, sticky = 'e')
 
