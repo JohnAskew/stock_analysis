@@ -60,10 +60,19 @@ stock = ""
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
+programming_variable_start_row = 20
+
+value = 0
 
 #######################################
 # F U N C T I O N S 
 #######################################
+
+#-------------------------------------#
+def radio_chosen(value):
+#-------------------------------------#
+    radioLabel = tk.Label(app, text = value).grid(row = 6, column = 0, sticky = 'nw')
+    return value
 #-------------------------------------#
 def popupmsg(msg):
 #-------------------------------------#
@@ -82,8 +91,6 @@ def popupmsg(msg):
     popup.mainloop()
 
 
-
-
 #######################################
 class SeaofSTOXapp(tk.Tk):
 #######################################
@@ -92,10 +99,10 @@ class SeaofSTOXapp(tk.Tk):
 #-------------------------------------#    
         tk.Tk.__init__(self, *args, **kwargs)
 
-        if os.name == 'nt':
+        if os.name== 'nt':
             tk.Tk.iconbitmap(self, default = "py.ico")
     
-        tk.Tk.wm_title(self, "Search Stock client")
+        tk.Tk.wm_title(self, "Stock Tracker client")
 
         container = tk.Frame(self)
 
@@ -104,8 +111,6 @@ class SeaofSTOXapp(tk.Tk):
         container.grid_rowconfigure(0, weight = 1)
     
         container.grid_columnconfigure(0, weight = 1)
-
-        
 
         self.frames = {}
 
@@ -202,6 +207,7 @@ class StartPage(tk.Frame):
             
             a.run()
 
+ 
         #-------------------------------------#
         def get_entryText():
         #-------------------------------------#
@@ -246,6 +252,18 @@ class StartPage(tk.Frame):
             return p
 
 
+        RADIO_DAYS = [
+
+         (365, "365")
+
+        ,(270, "270")
+
+        ,(180, "180")
+        
+        ,]
+        
+
+
         label = tk.Label(self, text = "Stock Tracker Tool", fg = label_big_fg, bg = label_big_bg, font = ("Times", "24", "bold italic underline"))
         
         label.grid(row = 1, column = 0, sticky = 'w')
@@ -254,68 +272,129 @@ class StartPage(tk.Frame):
         
         eT1_label.grid(row = 4, column = 0, sticky = "w")
 
-        entryText        = tk.StringVar(self)
-        maShort_Tentry   = tk.StringVar(self)
-        maLong_Tentry    = tk.StringVar(self)
-        macdShort_Tentry = tk.StringVar(self)
-        macdLong_Tentry  = tk.StringVar(self)
-        ema_Tentry       = tk.StringVar(self)
-        rsiLow_Tentry    = tk.StringVar(self)
-        rsiHigh_Tentry   = tk.StringVar(self)
+        radio_days       = tk.StringVar()
+        
+        entryText        = tk.StringVar()
+        
+        maShort_Tentry   = tk.StringVar()
+        
+        maLong_Tentry    = tk.StringVar()
+        
+        macdShort_Tentry = tk.StringVar()
+        
+        macdLong_Tentry  = tk.StringVar()
+        
+        ema_Tentry       = tk.StringVar()
+        
+        rsiLow_Tentry    = tk.StringVar()
+        
+        rsiHigh_Tentry   = tk.StringVar()
+
+        
+        radio_days.set("365")
+
+         
+        x = tk.Radiobutton(self, text = RADIO_DAYS[0][0], bg = color_white,  fg = button_fg, variable = radio_days, value = RADIO_DAYS[0][1]).grid(row = programming_variable_start_row + 2, column = 0, padx = 0, sticky = 'W', )
+        
+        y = tk.Radiobutton(self, text = RADIO_DAYS[1][0], bg = color_white,  fg = button_fg, variable = radio_days, value = RADIO_DAYS[1][1]).grid(row = programming_variable_start_row + 2, column = 0, padx = 0)
+        
+        z = tk.Radiobutton(self, text = RADIO_DAYS[2][0], bg = color_white,  fg = button_fg, variable = radio_days, value = RADIO_DAYS[2][1]).grid(row = programming_variable_start_row + 2, column = 0, padx = 0, stick = 'E')
 
 
-
-        maShort_label   = tk.Label(self,text="    Moving Average days (short):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 20, column = 0, sticky = 'nw')
-        maLong_label    = tk.Label(self,text="     Moving Average days (long):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 22, column = 0, sticky = 'nw')
-        macdShort_label = tk.Label(self,text="Mov Avg Cnvg/DeCnvg short cycle:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 24, column = 0, sticky = 'nw')
-        macdLong_label  = tk.Label(self,text="Mov Avg Cnvg/DeCnvg long cycle:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 26, column = 0, sticky = 'nw')
-        ema_label       = tk.Label(self,text="Exponential Moving Avg Periods:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 28, column = 0, sticky = 'nw')
-        rsiLow_label    = tk.Label(self,text=" Relative Strength Index % low:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 30, column = 0, sticky = 'nw')
-        rsiHigh_label   = tk.Label(self,text="Relative Strength Index % high:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = 32, column = 0, sticky = 'nw')
+        maShort_label   = tk.Label(self,text="    Moving Average days (short):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 12, column = 0, sticky = 'nw')
+        
+        maLong_label    = tk.Label(self,text="     Moving Average days (long):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 13, column = 0, sticky = 'nw')
+        
+        macdShort_label = tk.Label(self,text="Mov Avg Cnvg/DeCnvg short cycle:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 14, column = 0, sticky = 'nw')
+        
+        macdLong_label  = tk.Label(self,text="Mov Avg Cnvg/DeCnvg long cycle:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 15, column = 0, sticky = 'nw')
+        
+        ema_label       = tk.Label(self,text="Exponential Moving Avg Periods:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 16, column = 0, sticky = 'nw')
+        
+        rsiLow_label    = tk.Label(self,text=" Relative Strength Index % low:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 17, column = 0, sticky = 'nw')
+        
+        rsiHigh_label   = tk.Label(self,text="Relative Strength Index % high:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 18, column = 0, sticky = 'nw')
         
  
         a = ParseConfig()
+        
         movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold = a.run()
 
+
         entryText.set('GOOG')
+        
         maShort_Tentry.set(movavg_window_days_short_term)
+        
         maLong_Tentry.set(movavg_window_days_long_term)
+        
         macdShort_Tentry.set(macd_periods_short_term)
+        
         macdLong_Tentry.set(macd_periods_long_term)
+        
         ema_Tentry.set(expma_periods)
+        
         rsiLow_Tentry.set(rsi_oversold)
+        
         rsiHigh_Tentry.set(rsi_overbought)
         
 
+        
+        rBC  = tk.Entry(self, textvariable = radio_days,       width = 8, fg = entry_fg, bg = entry_bg)
+        
         eT1  = tk.Entry(self, textvariable = entryText,        width = 8, fg = entry_fg, bg = entry_bg)
+        
         mAST = tk.Entry(self, textvariable = maShort_Tentry,   width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        
         mALT = tk.Entry(self, textvariable = maLong_Tentry,    width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        
         mcST = tk.Entry(self, textvariable = macdShort_Tentry, width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        
         mcLT = tk.Entry(self, textvariable = macdLong_Tentry,  width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        
         eMAT = tk.Entry(self, textvariable = ema_Tentry,       width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        
         rLT  = tk.Entry(self, textvariable = rsiLow_Tentry,    width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+        
         rHT  = tk.Entry(self, textvariable = rsiHigh_Tentry,   width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
 
 
         eT1.grid( row =  4, column = 0, sticky = "e")
-        separator_label1 = tk.Label(self, text = ' ').grid(row = 18, column = 0, sticky = 'w')
-        separator_label2 = tk.Label(self, text = '--------- Programmable Variables ---------', bg = label_separator_bg, fg = label_separator_fg, font = ("Courier New", "9", "bold")).grid(row = 19, column = 0, sticky = 'w')
-        mAST.grid(row = 20, column = 0, sticky = "e")
-        mALT.grid(row = 22, column = 0, sticky = "e")
-        mcST.grid(row = 24, column = 0, sticky = "e")
-        mcLT.grid(row = 26, column = 0, sticky = "e")
-        eMAT.grid(row = 28, column = 0, sticky = "e")
-        rLT.grid( row = 30, column = 0, sticky = "e")
-        rHT.grid( row = 32, column = 0, sticky = "e")
+        
+        separator_label1 = tk.Label(self, text = '___________________________________________________________',bg = label_separator_bg, fg = label_separator_fg,).grid(row = 17, column = 0, sticky = 'w')
+        
+        separator_label2 = tk.Label(self, text = '--------- Programmable Variables ---------', bg = label_separator_bg, fg = label_separator_fg, font = ("Courier New", "9", "bold"), height = 1).grid(row = programming_variable_start_row + 10, column = 0, sticky = 'w')
+        
+        mAST.grid(row = programming_variable_start_row + 12, column = 0, sticky = "e")
+        
+        mALT.grid(row = programming_variable_start_row + 13, column = 0, sticky = "e")
+        
+        mcST.grid(row = programming_variable_start_row + 14, column = 0, sticky = "e")
+        
+        mcLT.grid(row = programming_variable_start_row + 15, column = 0, sticky = "e")
+    
+        eMAT.grid(row = programming_variable_start_row + 16, column = 0, sticky = "e")
+        
+        rLT.grid( row = programming_variable_start_row + 17, column = 0, sticky = "e")
+        
+        rHT.grid( row = programming_variable_start_row + 18, column = 0, sticky = "e")
 
 
-        buttonmAST = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mAST_config).grid(row = 20, column = 1, sticky = 'e')
-        buttonmALT = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mALT_config).grid(row = 22, column = 1, sticky = 'e')
-        buttonmcST = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mcST_config).grid(row = 24, column = 1, sticky = 'e')
-        buttonmcLT = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mcLT_config).grid(row = 26, column = 1, sticky = 'e')
-        buttoneMAT = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_eMAT_config).grid(row = 28, column = 1, sticky = 'e')
-        buttonrLT  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rLT_config).grid( row = 30, column = 1, sticky = 'e')
-        buttonrHT  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rHT_config).grid( row = 32, column = 1, sticky = 'e')
+        
+        buttonRadio = tk.Button(self, text = "Accept choice of historical days to track", fg = button_fg, height = 2, command = lambda: radio_chosen(radio_days.get())).grid(  row = programming_variable_start_row - 2,  column = 0, sticky = 'sew')
+        
+        buttonmAST  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mAST_config).grid(row = programming_variable_start_row + 12,  column = 1, sticky = 'e')
+        
+        buttonmALT  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mALT_config).grid(row = programming_variable_start_row + 13, column = 1, sticky = 'e')
+        
+        buttonmcST  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mcST_config).grid(row = programming_variable_start_row + 14, column = 1, sticky = 'e')
+        
+        buttonmcLT  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mcLT_config).grid(row = programming_variable_start_row + 15, column = 1, sticky = 'e')
+        
+        buttoneMAT  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_eMAT_config).grid(row = programming_variable_start_row + 16, column = 1, sticky = 'e')
+        
+        buttonrLT   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rLT_config).grid(row  = programming_variable_start_row + 17, column = 1, sticky = 'e')
+        
+        buttonrHT   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rHT_config).grid(row  = programming_variable_start_row + 18, column = 1, sticky = 'e')
 
 
         eT1.focus_set()
@@ -324,13 +403,14 @@ class StartPage(tk.Frame):
         
         buttonAccept.grid(row = 4, column = 1, sticky = 'e')
 
-        buttonGraph = tk.Button(self, text = " Create Graph ", fg = button_fg, bg = button_bg, command =  lambda: subprocess.call(["python3", dir_path + "/" + "stocks_1.py", get_entryText() ]))#lambda: controller.show_frame(PageGenerateGraph))
+        buttonGraph = tk.Button(self, text = " Create Graph ", fg = button_fg, bg = button_bg, command =  lambda: subprocess.call(["python", dir_path + "/" + "stocks_1.py", get_entryText(), radio_days.get() ]))#lambda: controller.show_frame(PageGenerateGraph))
 
         buttonGraph.grid(row = 10, column = 1, sticky = 'e')
 
-        e2_label = tk.Label(self, fg = color_verbose, bg = label_bg, text = "First daily run takes 7 minutes\nto build the 500 stocks datawarehouse.\n New folder \"askew\" holds the build.", font = ("Monospace, 10"))
+        #e2_label = tk.Label(self, fg = color_verbose, bg = label_bg, text = "First daily run takes 7 minutes\nto build the 500 stocks datawarehouse.\n New folder \"askew\" holds the build.", font = ("Monospace, 8"))
+        e2_label = tk.Label(self, fg = color_verbose, bg = label_bg, text = "First daily run takes 7 minutes to build the 500 stocks\ndatawarehouse. New folder \"askew\" holds the build.", font = ("Monospace, 8"))
 
-        e2_label.grid(row = 12, column = 0, sticky = 'nw')
+        e2_label.grid(row = 10, column = 0, sticky = 'nw', rowspan = 3)
 
 
 
@@ -352,30 +432,54 @@ class PageGenerateGraph(tk.Frame):
 #######################################
 # M A I N   L O G I C   S T A R T
 #######################################
+
 color_melon  = '#F53335'
+
 color_purple = '#890b86'
+
 color_black  = '#0F0F0A'
+
 color_red    = 'red'
+
 color_white  = '#FFFFFA'
+
 color_blue   = 'blue'
+
 color_gray   = 'lavender'#'floralwhite'
+
 color_verbose = 'lemonchiffon' #antiquewhite'
+
 color_firebrick = 'turquoise2' #steelblue2'
 
+
 frame_fg = color_black
-frame_bg = color_purple #black
-label_fg = color_white #'#FFFFFA'
-label_bg = color_purple #black
+
+frame_bg = color_purple
+
+label_fg = color_white
+
+label_bg = color_purple
+
 label_big_fg = color_black
+
 label_big_bg = color_purple
+
 label_fg_red = color_verbose
+
 label_separator_fg = color_firebrick
+
 label_separator_bg = color_purple
+
 entry_fg     = color_red
+
 entry_bg     = color_white
+
 entry2_fg    = color_blue
+
 entry2_bg    = color_gray
+
 button_fg    = color_blue
+
 button_bg    = color_gray
 
 # style = ttk.Style()
@@ -384,7 +488,7 @@ button_bg    = color_gray
 
 app = SeaofSTOXapp()
 
-app.geometry("390x375")
+app.geometry("390x405")
 
 app.mainloop()
 

@@ -1,5 +1,8 @@
 #! python3
-''' Modified the SentDex stock graphing solution found on YouTube.
+''' Modified the SentDex stock graphing solution found on YouTube. Context
+included the series on graphing a Stock, buidling an S&P 500 heatmap and the 
+Tkinter UI series:
+
 https://www.pythonprogramming.net/
 http://www.sentdex.com/
 
@@ -22,6 +25,9 @@ TTTTTTTTTT         D D
 3. Yellow buy bands for RSI score < 30%.
 
 4. Convert OHLC to Heiken Ashi OHLC (See Formulaz)
+
+5. GUI - add daterange for stock scraper. Currently the only 
+       option is pulling past year
 
 '''
 import os
@@ -224,6 +230,8 @@ plt.rcParams['axes.formatter.useoffset'] = False
 
 pd.plotting.register_matplotlib_converters()
 
+stock_date_adj = int(0)
+
 a = ParseConfig()
 
 movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold = a.run()
@@ -378,7 +386,18 @@ def set_spines(owner):
 #######################################
 
 if __name__ == '__main__':
+
+    if len(sys.argv) > 2:
+
+        stock_date_adj = sys.argv[2]
+
+        print("sys.argv[2]:", sys.argv[2])
     
+    else:
+    
+        stock_date_adj = int(365)
+    
+
     if len(sys.argv) > 1:
         
         if sys.argv[1]:
@@ -399,10 +418,10 @@ if __name__ == '__main__':
         ax2_sent_subject = ax1_subject
 
 
+
 #-----------------------------------#
 # Variables
 #-----------------------------------#
-
 
 user = getpass.getuser()
 
@@ -436,11 +455,7 @@ try:
     if os.path.exists(saveFile) and dt.date.fromtimestamp(st.st_mtime) != dt.date.today():
         
         print(os.path.exists(saveFile))
-
-        print("dt.date.fromtimestamp(st.st_mtime)" , dt.date.fromtimestamp(st.st_mtime))
-
-        print("dt.date.today()", dt.date.today())
-   
+  
         try:
             
             subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
@@ -493,7 +508,9 @@ ax_b    = plt.subplot2grid((plot_row,plot_col), (12, 6), rowspan = 83, colspan =
 
 ax_c    = plt.subplot2grid((plot_row,plot_col), (95, 6), rowspan = 20, colspan = 6)
 
-ax_d    = plt.subplot2grid((plot_row,plot_col), (115,6), rowspan = 40, colspan = 6)
+#ax_d    = plt.subplot2grid((plot_row,plot_col), (115,6), rowspan = 40, colspan = 6)
+ax_d    = plt.subplot2grid((plot_row,plot_col), (136,6), rowspan = 40, colspan = 6)
+ax_e    = plt.subplot2grid((plot_row, plot_col), (115, 6), rowspan = 20, colspan = 6, sharex = ax_d)
 
 
 ax2_sent         = plt.subplot2grid((plot_row,plot_col), (0,  13), rowspan = 30, colspan = 3)
@@ -526,20 +543,39 @@ ax3_sim_stock3.set_visible(False)
 # Populate Data
 ########################################################
 os.chdir(myPath)
+
 try:
+
     df = pd.read_csv((ax1_subject + '.csv'), parse_dates=True, index_col =0)
+
 except Exception as e:
+
     print("stocks_1.py did not find", ax1_subject, "information. As it's not in the datawarehouse, is the ticker symbol spelled correctly?")
+
     print(e)
+
     popupmsg("Symbol " + ax1_subject + " is not found! -- Spelling?")
+
     sys.exit(0)
 '''
-Capture OHLC before resetting index
-'''
-
+Capture OHLC before resetting index'''
 df_ohlc = df['Adj_Close'].resample('10D').ohlc()
 
-df.reset_index(inplace = True)      
+df_ohlc.reset_index(inplace = True)
+
+df_ohlc = df_ohlc[df_ohlc.Date > (dt.datetime.now() - dt.timedelta(days = int(stock_date_adj)))]  
+
+df_ohlc.set_index('Date', inplace = True)
+
+
+df.reset_index(inplace = True)    
+
+df = df[df.Date > (dt.datetime.now() - dt.timedelta(days = int(stock_date_adj)))]  
+
+df.set_index('Date', inplace = True)
+
+
+  
 ########################################################
 #Define DATA and attributes
 ########################################################
@@ -822,6 +858,8 @@ ax_a.plot([],[], linewidth = 2, label = 'UnderVal' , color = 'darkgreen', alpha 
 
 ax_a.legend(fontsize = 6, fancybox = True, loc = 2, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
+ax_a.get_xaxis().set_visible(False)
+
 ##
 ### Moving Average
 ##
@@ -882,8 +920,6 @@ ax_b.set_ylabel( ax1_subject + ' Price and Composite ', fontsize=8, fontweight =
 
 filter2 = df['MA10'] >  df['MA30']
 
-#DEBUG print( df['Date'] + dt.timedelta(days = movavg_window_days_short_term))
-
 filter3 = df['MA10'].shift(1) <= df['MA30'].shift(1)
 
 start_xz = ( dt.datetime.now() - dt.timedelta(days = 365))
@@ -919,6 +955,8 @@ ax_b.plot([],[], linewidth = 2, label = 'Down' , color = 'red', alpha = 0.9)
 
 ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
+ax_b.get_xaxis().set_visible(False)
+
 
 
 
@@ -947,6 +985,7 @@ ax_c.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_per
 ax_c.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'blue')
 
 ax_c.legend(loc=2, borderaxespad=0., fontsize = 6.0)
+ax_c.get_xaxis().set_visible(False)
 
 
 ax_d.tick_params(axis = 'x', colors = '#890b86')
@@ -965,6 +1004,18 @@ ax_d.set_ylabel('Volume', fontsize=8, fontweight =5, color = 'b')
 
 ax_d.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
 
+
+#-------------------------------------#
+# Added Signal detrend
+#-------------------------------------#
+ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close'].shift(1)) * 100, linewidth =1, color = 'blue')
+rotate_xaxis(ax_e)
+set_spines(ax_e)
+set_labels(ax_e)
+ax_e.tick_params(axis = 'x', colors = '#890b86')
+ax_e.tick_params(axis = 'y', colors = 'g', labelsize = 0)
+ax_e.get_xaxis().set_visible(False)
+ax_e.set_ylabel('% Chg',fontsize=8, fontweight =5, color = 'darkred')
 #######################################
 # S T A R T   S E N T I M E N T   A N.#
 #                                     #
