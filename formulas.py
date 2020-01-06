@@ -99,6 +99,7 @@ class formulaz:
         if method == 'difference':
 
             straighten_trend = prices.close[1:] - prices.close[:-1].values
+            print(straighten_trend)
 
         elif method == 'linear':
 
@@ -120,11 +121,73 @@ class formulaz:
 
         return straighten_trend
 
+    #---------------------------------#
+    def fseries(x, a0, a1, b1, w):
+    #---------------------------------#
+
+        f = a0 + a1*np.cos(w+x) + b1*np.sin(w+x)
+
+        return f
+
+    #---------------------------------#
+    def sseries(x, a0, b1, w):
+    #---------------------------------#
+
+            f = a0 + + b1*np.sin(w+x)
+
+            return f
+
+    #---------------------------------#
+    def fourier(prices, periods, method = 'difference'):
+    #---------------------------------#
+
+        results = holder()
+
+        dict = {}
+
+        plot = False
+
+        detrended = straighten_trend(prices, method)
+
+        for i in range(0, len(perods)):
+
+            coeffs = []
+
+            for j in range(periods[i], len(prices ) - periods[i]):
+
+                x = np.arange(0, periods[i])
+
+                y = straighten_trend.iloc[j - periods[i]]
+
+                with warnings.cathch_warnings():
+
+                    warnings.simplefilter('error',OptiimeWarning)
 
 
+                    try:
+
+                        res = scipy.optimize.curve_fit(fseries, x, y)
+
+                    except (RuntimeError, OptimizeWarning):
+
+                            res = np.empty((1,4))
+
+                            res[0,i] = np.NAN
 
 
+                    if plot == True:
 
+                        xt = np.linspace(periods[i], 100)
+                        
+                        yt = fseries(xt, res[0][0], res[0][i], res[0][2], res[0][3])
+
+                        plt.plot(x, y)
+                        
+                        plt.plot(xt, yt, 'r')
+
+                        plt.show()
+
+                    coeffs = np.append(coeffs, res[0], axis = 0)
 
 
 

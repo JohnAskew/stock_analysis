@@ -66,9 +66,13 @@ except:
     print("#########################################")
 
 try:
+    
     from stocks_alt_info import altAnalysis
+
 except Exception as e:
+
     print("Unable to access python module stocks_alt_info. Skipping financial details and continuing on...")
+
     print(e)
 
 try:
@@ -223,6 +227,10 @@ except:
 import time
 
 from pandas.plotting import register_matplotlib_converters
+
+import json
+
+import pprint
 
 style.use('fivethirtyeight')
 
@@ -391,8 +399,6 @@ if __name__ == '__main__':
 
         stock_date_adj = sys.argv[2]
 
-        print("sys.argv[2]:", sys.argv[2])
-    
     else:
     
         stock_date_adj = int(365)
@@ -438,7 +444,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 # Grab Dates
 #-----------------------------------#
 
-start = ( dt.datetime.now() - dt.timedelta(days = 365) )       # Format is year, month, day
+start = ( dt.datetime.now() - dt.timedelta(days = int(stock_date_adj)) )       # Format is year, month, day
 
 end = dt.datetime.today()           # format of today() = [yyyy, mm, dd] - list of integers
 
@@ -482,25 +488,32 @@ plot_row = 18 + 122 + 35 #98 Askew 20
 
 plot_col = 20
 
+
+
 fig , ax  = plt.subplots(figsize=(19,7), dpi=110,frameon=False, facecolor='#FFFFFA', sharex = True, sharey = True) #Too Bad, I really liked this color, facecolor = '#FFFFFA')
+
+plt.box(on = None)
 
 plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='lower'))
 
 
+
 ax1_year = plt.subplot2grid((plot_row,plot_col), (0,  0), rowspan = 10, colspan = 4)
 
-ax1_ohlc = plt.subplot2grid((plot_row,plot_col), (21, 0), rowspan = 10, colspan = 4, sharex = ax1_year, sharey = ax1_year)
+ax1_ohlc = plt.subplot2grid((plot_row,plot_col), (23, 0), rowspan = 10, colspan = 4, sharex = ax1_year, sharey = ax1_year)
 
-ax1_ma   = plt.subplot2grid((plot_row,plot_col), (42, 0), rowspan = 10, colspan = 4, sharex = ax1_year, sharey = ax1_year)
+ax1_ma   = plt.subplot2grid((plot_row,plot_col), (47, 0), rowspan = 10, colspan = 4, sharex = ax1_year, sharey = ax1_year)
 
-ax1_rsi  = plt.subplot2grid((plot_row,plot_col), (64, 0), rowspan = 10, colspan = 4, sharex = ax1_year)
+ax1_rsi  = plt.subplot2grid((plot_row,plot_col), (70, 0), rowspan = 10, colspan = 4, sharex = ax1_year)
 
-ax1_macd = plt.subplot2grid((plot_row,plot_col), (86, 0), rowspan = 10, colspan = 4, sharex = ax1_year)
+ax1_macd = plt.subplot2grid((plot_row,plot_col), (94, 0), rowspan = 10, colspan = 4, sharex = ax1_year)
 
-ax1_vol  = plt.subplot2grid((plot_row,plot_col), (109,0), rowspan = 10, colspan = 4, sharex = ax1_year)
+ax1_vol  = plt.subplot2grid((plot_row,plot_col), (121,0), rowspan = 10, colspan = 4, sharex = ax1_year)
 
-ax1_tot  = plt.subplot2grid((plot_row,plot_col), (152,0), rowspan = 300, colspan = 3)
+ax1_vol.yaxis.set_major_formatter(FormatStrFormatter('%10d'))
 
+ax1_tot  = plt.subplot2grid((plot_row,plot_col), (155,0), rowspan = 300, colspan = 3)
+ax1_tot2 = plt.subplot2grid((plot_row,plot_col), (155,3), rowspan = 300, colspan = 3)
 
 ax_a    = plt.subplot2grid((plot_row,plot_col), (0,  6), rowspan = 12, colspan = 6)
 
@@ -557,9 +570,36 @@ except Exception as e:
     popupmsg("Symbol " + ax1_subject + " is not found! -- Spelling?")
 
     sys.exit(0)
-'''
-Capture OHLC before resetting index'''
-df_ohlc = df['Adj_Close'].resample('10D').ohlc()
+
+try:
+
+    a = altAnalysis(ax1_subject)
+
+    company_json = a.run()
+
+except Exception as e:
+
+    print("Unable to extract Accounting details from program stock_alt_info.py. Skipping accounting details.")
+    print(e)
+
+
+'''Capture OHLC before resetting index'''
+
+if int(stock_date_adj) >= 270:
+    
+    df_ohlc = df['Adj_Close'].resample('10D').ohlc()
+
+elif int(stock_date_adj) >= 180 and int(stock_date_adj) < 270:
+    
+    df_ohlc = df['Adj_Close'].resample('7D').ohlc()
+
+else:
+
+    df_ohlc = df['Adj_Close'].resample('5D').ohlc()
+
+
+
+
 
 df_ohlc.reset_index(inplace = True)
 
@@ -573,7 +613,6 @@ df.reset_index(inplace = True)
 df = df[df.Date > (dt.datetime.now() - dt.timedelta(days = int(stock_date_adj)))]  
 
 df.set_index('Date', inplace = True)
-
 
   
 ########################################################
@@ -739,6 +778,7 @@ ax1_vol.set_ylabel('Volume', fontsize=8, fontweight =5, color = 'b')
 
 ax1_vol.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
 
+autoAxis = plt.axis()
 
 last_rec = (len(df) -1)
 
@@ -758,27 +798,58 @@ last_close = df['Close'].iloc[-1]
 # F I N A N C I A L   D E T A I L S
 #   scrunched up to fit the frame
 #--------------------------------------#
-a = altAnalysis(ax1_subject)
+# a = altAnalysis(ax1_subject)
 
-company_json = a.run()
+# company_json = a.run()
 
 hide_frame(ax1_tot)
 
+hide_frame(ax1_tot2)
+
+
+rec = Rectangle((autoAxis[0]-0.1,autoAxis[2]-0.2),(autoAxis[1]-autoAxis[0])+1,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
+
+rec = ax1_tot.add_patch(rec)
+
+rec.set_clip_on(False)
+
 other_DETAILS_List = []
+
+col_cnt = 0
 
 for sTOCK, value in company_json['OTHER_DETAILS'].items():
 
     other_DETAILS_List.append(sTOCK + " : " + str(value))
 
-cnt_DETAILS = float(0.0) #len(company_json)
+cnt_DETAILS = float(0.0)
 
-for i in sorted(other_DETAILS_List, reverse = True):
+cnt_DETAILS = 1.0
 
-    i = str(i) #.strip()
+for i in sorted(other_DETAILS_List, reverse = True,):
 
-    ax1_tot.text(0,cnt_DETAILS, i, verticalalignment='top', horizontalalignment='left', color='darkblue', fontsize=6)
+    i = str(i)
+    
+    if col_cnt == 0:
 
-    cnt_DETAILS += 0.150
+        ax1_tot.text(0,cnt_DETAILS, i, verticalalignment='top', horizontalalignment='left', color='darkblue', fontsize=6)
+
+        col_cnt = 1
+    
+    else:
+    
+        ax1_tot2.text(0,cnt_DETAILS, i, verticalalignment='top', horizontalalignment='left', color='darkblue', fontsize=6)
+    
+        col_cnt = 0
+        
+        cnt_DETAILS -= 0.150
+
+ax1_tot.grid(color = 'white')
+
+ax1_tot2.grid(color = 'white')
+
+os.remove(ax1_subject + '.data.json')
+
+os.remove(ax1_subject + '.output_file.html')
 
 '''
 Extract what is needed for candlestick_ohlc AND
@@ -788,7 +859,6 @@ Extract what is needed for candlestick_ohlc AND
 Drop index to set up mdates to replace date 
   needed by candelstick_ohlc - does not use std. date fmt.
 '''
-#df_ohlc = formulaz.heikenashi(df_ohlc)
 
 df_ohlc.reset_index(inplace=True)                #Date becomes addressable column
 
@@ -1005,17 +1075,26 @@ ax_d.set_ylabel('Volume', fontsize=8, fontweight =5, color = 'b')
 ax_d.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
 
 
+
 #-------------------------------------#
 # Added Signal detrend
 #-------------------------------------#
 ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close'].shift(1)) * 100, linewidth =1, color = 'blue')
+
 rotate_xaxis(ax_e)
+
 set_spines(ax_e)
+
 set_labels(ax_e)
+
 ax_e.tick_params(axis = 'x', colors = '#890b86')
+
 ax_e.tick_params(axis = 'y', colors = 'g', labelsize = 0)
+
 ax_e.get_xaxis().set_visible(False)
+
 ax_e.set_ylabel('% Chg',fontsize=8, fontweight =5, color = 'darkred')
+
 #######################################
 # S T A R T   S E N T I M E N T   A N.#
 #                                     #
@@ -1083,18 +1162,17 @@ ax2_sent.set_title("(neg) <-- " + ax1_subject + " Sentiment Score --> (pos)", co
 ax2_sent.set_ylabel('Subjectivity', fontsize=8, fontweight =5, color = '#890b86')
 
 
-ax2_sent.plot([],[], linewidth = 2, label = 'Sentiment: ' +  "{0:.4f}".format(round(sentiment,4) ) , color = 'red', alpha = 0.9)
+ax2_sent.plot([],[], linewidth = 2, label = 'Sentiment:' +  "{0:.4f}".format(round(sentiment,4) ) , color = 'red', alpha = 0.9)
 
-ax2_sent.plot([],[], linewidth = 2, label = 'Subjectivity: ' + "{0:.4f}".format(round(subjectivity,4) ), color = 'red', alpha = 0.9)
+ax2_sent.plot([],[], linewidth = 2, label = 'Subjectivity:' + "{0:.4f}".format(round(subjectivity,4) ), color = 'red', alpha = 0.9)
 
-ax2_sent.plot([],[], linewidth = 2, label = 'Std. Dev (Sentiment): ' + "{0:.4f}".format(round(sentiment_std_dev,4) ), color = 'darkblue', alpha = 0.9, marker = '+')
+ax2_sent.plot([],[], linewidth = 2, label = 'Std. Dev:' + "{0:.4f}".format(round(sentiment_std_dev,4) ), color = 'darkblue', alpha = 0.9, marker = '+')
 
 ax2_sent.axhline(y=0, color = 'yellow', linewidth = 2, label = '0=Neutral')
 
-ax2_sent.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
+ax2_sent.legend(fontsize = 5, fancybox = True, loc = 1, markerscale = -0.5, framealpha  = 0.7, facecolor = '#dde29a')
 
-
-ax2_sent_plots.plot(df_plot['sentiment'], df_plot['subjectivity'], '*', color = 'red')
+ax2_sent_plots.plot( df_plot['sentiment'], df_plot['subjectivity'], '*', color = 'red')
 
 ax2_sent_plots.plot([],[], linewidth = 2, label = 'Neutral' , color = 'k', alpha = 0.9)
 
@@ -1307,4 +1385,4 @@ fig.suptitle(user + " Stock Page", fontsize=14)
 
 plt.show()
 
-#fig.savefig(ax1_subject + '.png')
+fig.savefig(ax1_subject + '.png')
