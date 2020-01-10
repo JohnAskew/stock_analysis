@@ -1,7 +1,7 @@
 #! python3
 ''' Modified the SentDex stock graphing solution found on YouTube. Context
-included the series on graphing a Stock, buidling an S&P 500 heatmap and the 
-Tkinter UI series:
+included the series on graphing a Stock, buidling an S&P 500 heatmap, 
+Tkinter UI series for Bitcoin:
 
 https://www.pythonprogramming.net/
 http://www.sentdex.com/
@@ -18,7 +18,7 @@ TTTTTTTTTT         D D
     TT  o   o      D   D    o   o
     TT  00000      D D      ooooo
 
-1. Figure out stock clustering--> Long term replace correlation, or supplement it.
+1. Add compamy name and information at top of presentation
 
 2. Add Percent Change chart - if there is value (let user determine denomintor
 )
@@ -26,8 +26,6 @@ TTTTTTTTTT         D D
 
 4. Convert OHLC to Heiken Ashi OHLC (See Formulaz)
 
-5. GUI - add daterange for stock scraper. Currently the only 
-       option is pulling past year
 
 '''
 import os
@@ -41,13 +39,23 @@ except:
     
     movavg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
     
-    movavg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
+    movavg_window_days_long_term  = 30                                         #Moving Average 30 days (slow)
     
-    macd_periods_long_term = 26
+    macd_periods_long_term        = 26
     
-    macd_periods_short_term = 12
+    macd_periods_short_term       = 12
     
-    expma_periods = 9 
+    expma_periods                 = 9 
+
+    pct_chg                       = 'new'
+
+    boll                          = 'y'
+
+    boll_window                   = 20
+
+    boll_weight                   = 2
+
+    fib                           = 'y'
 
 from formulas import *
 
@@ -60,9 +68,27 @@ try:
 
 except:
     print("#########################################")
+    
     print("ERROR: unable to find tools_get_company.")
+    
     print("       Web Sentiment Analysis using")
+    
     print("       stock symbol and not company name!")
+    
+    print("#########################################")
+
+try:
+    
+    from tools_scrape_profile import *
+
+except:
+    
+    print("#########################################")
+    
+    print("ERROR: unable to find tools_scrape_profile.")
+    
+    print("    using stock symbol and no company info!")
+    
     print("#########################################")
 
 try:
@@ -242,8 +268,10 @@ stock_date_adj = int(0)
 
 a = ParseConfig()
 
-movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold = a.run()
-
+movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib = a.run()
+##
+### Convert numeric config settings to integer. String vars need no conversion.
+##
 movavg_window_days_short_term = int(movavg_window_days_short_term)
 
 movavg_window_days_long_term  = int(movavg_window_days_long_term)
@@ -258,9 +286,14 @@ rsi_overbought                = int(rsi_overbought)
 
 rsi_oversold                  = int(rsi_oversold)
 
+boll_window_days              = int(boll_window_days)
+
+boll_weight                   = int(boll_weight)
+
 ########################################################
 # Functions (before Main Logic)
 ########################################################
+
 #-------------------------------------#
 def popupmsg(msg):
 #-------------------------------------#
@@ -324,6 +357,7 @@ def calc_rsi(prices, n=14):
         rsi[i] = 100. - 100./(1. + rs)
 
     return rsi
+
 #-------------------------------------------------------#
 def moving_average(values, window):
 #-------------------------------------------------------#
@@ -332,6 +366,7 @@ def moving_average(values, window):
     smas = np.convolve(values, weights, 'valid') #Numpy convolve - returns the discrete, linear convolution of 2 seq.
     #https://stackoverflow.com/questions/20036663/understanding-numpys-convolve
     return smas
+
 #-------------------------------------------------------#
 def calc_ema(values,window):
 #-------------------------------------------------------#
@@ -344,6 +379,7 @@ def calc_ema(values,window):
     a[:window] = a[window]
     
     return a
+
 #-------------------------------------------------------#
 def calc_macd(x, slow=macd_periods_long_term, fast = macd_periods_short_term):
 #-------------------------------------------------------#
@@ -352,6 +388,7 @@ def calc_macd(x, slow=macd_periods_long_term, fast = macd_periods_short_term):
     eMaFast = calc_ema(x, fast)
     
     return eMaSlow, eMaFast, eMaFast - eMaSlow
+
 #-------------------------------------------------------#
 def rotate_xaxis(owner):
 #-------------------------------------------------------#
@@ -360,10 +397,12 @@ def rotate_xaxis(owner):
         label.set_rotation(45)
     
         label.set_fontsize(5.5)
+
 #-------------------------------------------------------#
 def set_labels(owner):
 #-------------------------------------------------------#
     owner.set_ylabel('Price', fontsize=8, fontweight =5, color = 'g')
+
 #-------------------------------------------------------#
 def hide_frame(owner):
 #-------------------------------------------------------#
@@ -375,6 +414,7 @@ def hide_frame(owner):
     owner.yaxis.set_visible(False)
     
     owner.set_xlabel(False)
+
 #-------------------------------------------------------#
 def set_spines(owner):
 #-------------------------------------------------------#
@@ -389,8 +429,9 @@ def set_spines(owner):
     owner.spines['top'].set_linewidth(1)
     
     owner.spines['bottom'].set_visible(False)
+
 #######################################
-# M A I N  L O G I C
+# H O U S K E E P I N G
 #######################################
 
 if __name__ == '__main__':
@@ -424,7 +465,9 @@ if __name__ == '__main__':
         ax2_sent_subject = ax1_subject
 
 
-
+#######################################
+# M A I N  L O G I C 
+#######################################
 #-----------------------------------#
 # Variables
 #-----------------------------------#
@@ -440,6 +483,15 @@ savePath = 'askew'                  # We will be creating this new sub-directory
 myPath = (currPath + '/' + savePath)# The full path of the new sub-dir
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
+
+##
+### Fibbonacci Retracements - which column to use.
+###                           compare Close to Adj_Close.
+## 
+fibbonacci_column = 'Close'
+bollinger_column = 'Close'
+
+
 #-----------------------------------#
 # Grab Dates
 #-----------------------------------#
@@ -449,7 +501,10 @@ start = ( dt.datetime.now() - dt.timedelta(days = int(stock_date_adj)) )       #
 end = dt.datetime.today()           # format of today() = [yyyy, mm, dd] - list of integers
 
 #-----------------------------------#
-# Set up place to save spreadsheet
+# Call to get data - if exists and current, fine. 
+#     if not, it will be scraped using
+#     the stock symbols loaded at 
+#     beginning of tools_build_datawarehouse.py
 #-----------------------------------#
 
 try:
@@ -457,11 +512,10 @@ try:
     saveFile=(myPath + '/{}'.format(ax1_subject) + '.csv')    # The RESUlTS we are saving on a daily basis
     
     st = os.stat(saveFile)
-    
+
+   
     if os.path.exists(saveFile) and dt.date.fromtimestamp(st.st_mtime) != dt.date.today():
         
-        print(os.path.exists(saveFile))
-  
         try:
             
             subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
@@ -478,19 +532,16 @@ except:
     
     subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
 
-
-
 ########################################################
 ## Let's define our canvas, before we go after the data
-## Odd numbers (ex. ax1_vol) are for stock 1. Even = stock 2.
 #########################################################
-plot_row = 18 + 122 + 35 #98 Askew 20
+plot_row = 18 + 122 + 35 # On-going expansion. Sloppy...
 
 plot_col = 20
 
 
 
-fig , ax  = plt.subplots(figsize=(19,7), dpi=110,frameon=False, facecolor='#FFFFFA', sharex = True, sharey = True) #Too Bad, I really liked this color, facecolor = '#FFFFFA')
+fig , ax  = plt.subplots(figsize=(19,8), dpi=110,frameon=False, sharex = True, sharey = True) #Too Bad, I really liked this color, facecolor = '#FFFFFA')
 
 plt.box(on = None)
 
@@ -513,17 +564,22 @@ ax1_vol  = plt.subplot2grid((plot_row,plot_col), (121,0), rowspan = 10, colspan 
 ax1_vol.yaxis.set_major_formatter(FormatStrFormatter('%10d'))
 
 ax1_tot  = plt.subplot2grid((plot_row,plot_col), (155,0), rowspan = 300, colspan = 3)
+
 ax1_tot2 = plt.subplot2grid((plot_row,plot_col), (155,3), rowspan = 300, colspan = 3)
 
-ax_a    = plt.subplot2grid((plot_row,plot_col), (0,  6), rowspan = 12, colspan = 6)
+##
+### ax_b comes first so other graphs can sharex with ax_b
+##
 
 ax_b    = plt.subplot2grid((plot_row,plot_col), (12, 6), rowspan = 83, colspan = 6)
 
-ax_c    = plt.subplot2grid((plot_row,plot_col), (95, 6), rowspan = 20, colspan = 6)
+ax_c    = plt.subplot2grid((plot_row,plot_col), (95, 6), rowspan = 20, colspan = 6, sharex = ax_b)
 
-#ax_d    = plt.subplot2grid((plot_row,plot_col), (115,6), rowspan = 40, colspan = 6)
-ax_d    = plt.subplot2grid((plot_row,plot_col), (136,6), rowspan = 40, colspan = 6)
-ax_e    = plt.subplot2grid((plot_row, plot_col), (115, 6), rowspan = 20, colspan = 6, sharex = ax_d)
+ax_d    = plt.subplot2grid((plot_row,plot_col), (136,6), rowspan = 40, colspan = 6, sharex = ax_b)
+
+ax_e    = plt.subplot2grid((plot_row, plot_col), (115, 6), rowspan = 20, colspan = 6, sharex = ax_b)
+
+ax_a    = plt.subplot2grid((plot_row,plot_col), (0,  6), rowspan = 12, colspan = 6, sharex = ax_b)
 
 
 ax2_sent         = plt.subplot2grid((plot_row,plot_col), (0,  13), rowspan = 30, colspan = 3)
@@ -545,6 +601,7 @@ ax3_sim_stock1.set_visible(False)
 ax3_sim_stock2.set_visible(False)
 
 ax3_sim_stock3.set_visible(False)
+
 ########################################################
 #      ####  #####    ###     ###  #   #      # 
 #     #        #     #   #   #     #  #      ##
@@ -682,7 +739,7 @@ ax1_ma.plot([],[], linewidth = 2, label = str(movavg_window_days_short_term)+'d 
 ax1_ma.plot([],[], linewidth = 2, label = str(movavg_window_days_long_term) +'d mov. avg.' , color = 'k', alpha = 0.9)
 
 ax1_ma.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
-#set_labels(ax1_ma)
+
 ax1_ma.set_ylabel('Mov.Avg.', fontsize=8, fontweight =5, color = 'r')
 
 ##
@@ -806,8 +863,8 @@ hide_frame(ax1_tot)
 
 hide_frame(ax1_tot2)
 
-
-rec = Rectangle((autoAxis[0]-0.1,autoAxis[2]-0.2),(autoAxis[1]-autoAxis[0])+1,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
+#Askew rec = Rectangle((autoAxis[0]-0.1,autoAxis[2]-0.2),(autoAxis[1]-autoAxis[0])+1,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
+rec = Rectangle((autoAxis[0]-0.5,autoAxis[2]-0.2),(autoAxis[1]-autoAxis[0])+1,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
 
 rec = ax1_tot.add_patch(rec)
 
@@ -831,13 +888,13 @@ for i in sorted(other_DETAILS_List, reverse = True,):
     
     if col_cnt == 0:
 
-        ax1_tot.text(0,cnt_DETAILS, i, verticalalignment='top', horizontalalignment='left', color='darkblue', fontsize=6)
+        ax1_tot.text(-.25,cnt_DETAILS, i, verticalalignment='top', horizontalalignment='left', color='darkblue', fontsize=6)
 
         col_cnt = 1
     
     else:
     
-        ax1_tot2.text(0,cnt_DETAILS, i, verticalalignment='top', horizontalalignment='left', color='darkblue', fontsize=6)
+        ax1_tot2.text(-.5,cnt_DETAILS, i, verticalalignment='top', horizontalalignment='left', color='darkblue', fontsize=6)
     
         col_cnt = 0
         
@@ -845,7 +902,7 @@ for i in sorted(other_DETAILS_List, reverse = True,):
 
 ax1_tot.grid(color = 'white')
 
-ax1_tot2.grid(color = 'white')
+ax1_tot2.grid(color = 'lightgray')
 
 os.remove(ax1_subject + '.data.json')
 
@@ -930,23 +987,54 @@ ax_a.legend(fontsize = 6, fancybox = True, loc = 2, markerscale = -0.5, framealp
 
 ax_a.get_xaxis().set_visible(False)
 
-##
-### Moving Average
-##
+##------------------------------------#
+### Main Chart - closing price, mov avg and fibbonnaci retracement bands
+##------------------------------------#
+fibb_ratio_lvl1 = .236
 
-ax_b.plot_date(df['Date'], df['Adj_Close'], '-', label='ADJ Closing Price', color = 'lightblue', linewidth = 1)
+fibb_ratio_lvl2 = .382
+
+fibb_ratio_lvl3 = .618
+
+fibb_min  = float(df[fibbonacci_column].min())
+
+fibb_max  = float(df[fibbonacci_column].max())
+
+fibb_diff   = float(fibb_max - fibb_min)
+
+fibb_lvl1   = float(df[fibbonacci_column].max() - ((fibb_ratio_lvl1) * fibb_diff))
+
+fibb_lvl2   = float(df[fibbonacci_column].max() - ((fibb_ratio_lvl2) * fibb_diff))
+
+fibb_lvl3   = float(df[fibbonacci_column].max() - ((fibb_ratio_lvl3) * fibb_diff))
+
+start_boll = len(df['Date'][boll_window_days - 1:])
+
+df['Close_STD']  = df[bollinger_column][- start_boll:].rolling(window = boll_window_days).std()
+
+df['Close_SMA']  = df[bollinger_column][- start_boll:].rolling(window = boll_window_days).mean()
+
+df['Boll_Upper'] = df['Close_SMA'] + (boll_weight * df['Close_STD'])
+
+df['Boll_Lower'] = df['Close_SMA'] - (boll_weight * df['Close_STD'])
+
+df['Boll_Mid']   = df['Close_SMA'] 
+
+ax_b.set_facecolor('#FFFFFA')
+
+ax_b.plot_date(df['Date'], df['Adj_Close'], '-', label='ADJ Closing Price', color = 'blue', alpha = 0.3, linewidth = 1)
 
 ax_b.plot([],[], linewidth = 2, label = 'Adj_Close yr ago' , color = 'gray', alpha = 0.9)
 
 ax_b.axhline(df['Adj_Close'][0], color = 'k', linewidth = 2)
 
-ax_b.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] > stock_entry), facecolor='lightgreen', alpha=0.6)
+ax_b.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] > stock_entry), facecolor='lightgreen', alpha=0.7)
 
-ax_b.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] < stock_entry), facecolor='pink', alpha=0.6)
+ax_b.fill_between(df['Date'], df['Adj_Close'], stock_entry, where = (df['Adj_Close'] < stock_entry), facecolor='pink', alpha=0.7)
 
 rotate_xaxis(ax_b)
 
-ax_b.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+ax_b.grid(True, linestyle = '-', linewidth=1, color='lightgray')
 
 set_spines(ax_b)
 
@@ -965,8 +1053,6 @@ rotate_xaxis(ax_b)
 ax_b.fill_between(df['Date'][- start:], mA_Short[-start:], mA_Long[-start:], where = (mA_Short[-start:] > mA_Long[-start:]), facecolor='darkgreen', alpha=0.6)
 
 ax_b.fill_between(df['Date'][- start:], mA_Short[-start:], mA_Long[-start:], where = (mA_Short[-start:] < mA_Long[-start:]), facecolor='darkred', alpha=0.6)
-
-ax_b.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
 
 ax_b.plot(df['Date'][- start:], mA_Short[- start:], color = 'b', linewidth = 1)     #Have to skip date ahead 10days (movavg_window_days_short_term)
 
@@ -1007,6 +1093,8 @@ for i in xz.dropna():
 
 candlestick_ohlc(ax_b, df_ohlc.values, width = 1, colorup = 'g')
 
+
+
 rotate_xaxis(ax_b)
 
 set_labels(ax_b)
@@ -1017,16 +1105,36 @@ ax_b.tick_params(axis = 'x', colors = '#890b86')
 
 ax_b.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
-ax_b.set_ylabel('OHLC', fontsize=8, fontweight =5, color = 'darkgreen')
+ax_b.set_ylabel('Composite: Adj Close, Mov Avg, OHLC and more ', fontsize=8, fontweight =5, color = 'darkgreen')
 
 ax_b.plot([],[], linewidth = 2, label = 'Up' , color = 'green', alpha = 0.9)
 
 ax_b.plot([],[], linewidth = 2, label = 'Down' , color = 'red', alpha = 0.9)
 
-ax_b.legend(fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
+
 
 ax_b.get_xaxis().set_visible(False)
 
+if boll.upper() == 'Y':
+
+    ax_b.plot(df['Date'][- start_boll:], df['Boll_Upper'][- start_boll:], '-', label='Upper Bollinger ', color = 'maroon', alpha = 0.3, linewidth = 1)
+
+    ax_b.plot(df['Date'][- start_boll:], df['Boll_Lower'][- start_boll:], '-', label='Lower Bollinger ', color = 'turquoise', alpha = 0.8, linewidth = 1)
+
+
+if fib.upper() == 'Y':
+
+    ax_b.axhspan(fibb_lvl3, fibb_min,  alpha = 0.2, color = 'pink') #'lightsalmon')
+
+    ax_b.axhspan(fibb_lvl2, fibb_lvl3, alpha = 0.2, color = 'orange') #palegoldenrod')
+
+    ax_b.axhspan(fibb_lvl1, fibb_lvl2, alpha = 0.2, color = 'yellow') # 'plum')
+
+    ax_b.axhspan(fibb_max, fibb_lvl1,  alpha = 0.2, color = 'lightblue')
+
+    ax_b.plot([],[], linewidth = 2, label = 'Fibbonacci colors on' , color = 'pink', alpha = 0.3)
+
+ax_b.legend(fontsize = 5, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
 
 
@@ -1079,7 +1187,13 @@ ax_d.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
 #-------------------------------------#
 # Added Signal detrend
 #-------------------------------------#
-ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close'].shift(1)) * 100, linewidth =1, color = 'blue')
+if pct_chg == 'old':
+
+    ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close']) * 100, linewidth =1, color = 'blue')
+
+else:
+    ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close'].shift(1)) * 100, linewidth =1, color = 'blue')
+
 
 rotate_xaxis(ax_e)
 
@@ -1170,7 +1284,9 @@ ax2_sent.plot([],[], linewidth = 2, label = 'Std. Dev:' + "{0:.4f}".format(round
 
 ax2_sent.axhline(y=0, color = 'yellow', linewidth = 2, label = '0=Neutral')
 
-ax2_sent.legend(fontsize = 5, fancybox = True, loc = 1, markerscale = -0.5, framealpha  = 0.7, facecolor = '#dde29a')
+ax2_sent.legend(fontsize = 5, fancybox = True, loc = 1, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
+
+
 
 ax2_sent_plots.plot( df_plot['sentiment'], df_plot['subjectivity'], '*', color = 'red')
 
@@ -1380,7 +1496,7 @@ fig = gcf()
 
 my_title = (user, "Stock Page")
 
-fig.suptitle(user + " Stock Page", fontsize=14)
+fig.suptitle(user + "'s Stock Tracker Page for " + ax1_subject + " as of " + str(dt.date.today()), fontsize=14)
 
 
 plt.show()

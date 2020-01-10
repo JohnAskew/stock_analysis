@@ -20,6 +20,12 @@ class get_WIKI():
 
         stocks = []                                    #Allocate list to save results
 
+        stocks.append('TSLA')
+    
+        stocks.append('JCP')
+    
+        stocks.append('MANH') 
+
         resp = requests.get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
 
         soup = bs.BeautifulSoup(resp.text, "lxml")

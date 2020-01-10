@@ -33,9 +33,55 @@ if __name__ == "__main__":
         a.run()
 
     else:
-        a = ConfigUpdater('movavg_window_days_short_term', '13')
         
+        a = ConfigUpdater('movavg_window_days_short_term', '10')
+
         a.run()
+
+        a = ConfigUpdater('movavg_window_days_long_term',  '30')
+
+        a.run()
+
+        a = ConfigUpdater('macd_periods_long_term',        '26')
+
+        a.run()
+
+        a = ConfigUpdater('macd_periods_short_term',       '12')
+
+        a.run()
+
+        a = ConfigUpdater('expma_periods',                  '9')
+
+        a.run()
+
+        a = ConfigUpdater('rsi_overbought',                '70')
+
+        a.run()
+
+        a = ConfigUpdater('rsi_oversold',                  '30')
+
+        a.run()
+
+        a = ConfigUpdater('pct_chg',                      'new')
+
+        a.run()
+
+        a = ConfigUpdater('boll',                           'y')
+
+        a.run()
+
+        a = ConfigUpdater('boll_window_days',              '20')
+
+        a.run()
+
+        a = ConfigUpdater('boll_weight',                    '2')
+
+        a.run()
+        
+        a = ConfigUpdater('fib',                            'y')
+
+        a.run()
+
 
 
 

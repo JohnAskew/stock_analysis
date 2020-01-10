@@ -171,21 +171,27 @@ except Exception as e:
 
 try:
     
-    movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold = a.run()
-    
+    movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib = a.run()
+    ##
+    ### Convert numeric config settings to integer. String vars need no conversion.
+    ##
     movavg_window_days_short_term = int(movavg_window_days_short_term)
-    
+
     movavg_window_days_long_term  = int(movavg_window_days_long_term)
-    
+
     macd_periods_long_term        = int(macd_periods_long_term)
-    
+
     macd_periods_short_term       = int(macd_periods_short_term)
-    
+
     expma_periods                 = int(expma_periods)
-    
+
     rsi_overbought                = int(rsi_overbought)
-    
+
     rsi_oversold                  = int(rsi_oversold)
+
+    boll_window_days              = int(boll_window_days)
+
+    boll_weight                   = int(boll_weight)
 
 except Exception as e:
 
@@ -202,6 +208,23 @@ except Exception as e:
     macd_periods_short_term = 12
     
     expma_periods = 9 
+
+    rsi_overbought = 70
+    
+    rsi_oversold = 30
+    
+    pct_chg = new
+    
+    boll = n
+    
+    boll_window_days = 20
+    
+    boll_weight = 2
+    
+    fib = n
+
+
+
 
 #######################################################
 # Functions (before Main Logic)
@@ -314,19 +337,15 @@ def get_fina_summary(csv, stock = 'JCP'):
 
     df_fina.iloc[df_fina_len - 1 :df_fina_len, :] = df_fina_tail
 
-    ###
     df_fina.to_csv(csv, sep = ',', encoding = 'utf-8')
-    ###
 
     os.remove(stock + '.data.json')
+    
     os.remove(stock + '.output_file.html')
      
     # except Exception as e:
-
     #     print("stocks_1.py unable to parse JSON received from stocks_alt_info. Skipping accounting details on report.")
-        
     #     print(e)
-
     #     return
 #-------------------------------------------------------#
 def calc_rsi(prices, n=14):
@@ -416,6 +435,20 @@ def save_sp500_stocks():
 
     stocks = stocks_wiki # temp code, while we remove the NASDAQ stocks -- 3500 stocks
 
+    stocks.append('JCP')
+
+    stocks.append('MANH')
+
+    stocks.append('ITMC')
+
+    stocks.append('TSLA')
+
+    stocks.append('HEMP')
+
+    stocks.append('HYYWF')
+
+    stocks = list(set(stocks))
+
     stocks.sort()
 
     with open("sp500stocks.pickle", "wb") as in_file:    #Pickle saves results as reuable object
@@ -452,10 +485,14 @@ def get_data_from_yahoo(reload_sp500 = True):
             st = os.stat(saveFile)     #The csv date (created)
 
             ##
-            ### If Current, simply exit
+            ### If Current, simply exit. If now is before today's market is open, then skip. 
             ##
+            
+            market_open  = dt.datetime.strptime("09:00", "%H:%M")
 
-            if (os.path.exists(saveFile)) & (dt.date.fromtimestamp(st.st_mtime) == dt.date.today()):
+            market_open  = dt.datetime.time(market_open)
+
+            if (os.path.exists(saveFile)) and (( dt.datetime.now().time() < market_open) or ((dt.date.fromtimestamp(st.st_mtime) == dt.date.today()))):
 
                 print("Skipping", subject, "its' current as of today:" , end)
 
@@ -710,5 +747,5 @@ get_data_from_yahoo(True) #Set to true if first time run of want to refresh
 
 stocks_join_closeprice()
 
-stocks_join_per()
+#stocks_join_per()
 

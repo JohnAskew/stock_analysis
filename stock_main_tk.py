@@ -56,13 +56,27 @@ except:
     
     movavg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
     
-    movavg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
+    movavg_window_days_long_term  = 30                                         #Moving Average 30 days (slow)
     
-    macd_periods_long_term = 26
+    macd_periods_long_term        = 26
     
-    macd_periods_short_term = 12
+    macd_periods_short_term       = 12
     
-    expma_periods = 9 
+    expma_periods                 =  9 
+
+    rsi_oversold                  = 30
+
+    rsi_overbought                = 70
+
+    pct_chg                       = 'new'
+
+    boll                          = 'y'
+
+    boll_window_days              = 20
+
+    boll_wieght                   = 2
+
+    fib                           = 'y'
 
 try:
 
@@ -76,13 +90,27 @@ except:
     
     movavg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
     
-    movavg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
+    movavg_window_days_long_term  = 30                                         #Moving Average 30 days (slow)
     
-    macd_periods_long_term = 26
+    macd_periods_long_term        = 26
     
-    macd_periods_short_term = 12
+    macd_periods_short_term       = 12
     
-    expma_periods = 9 
+    expma_periods                 =  9 
+
+    rsi_overbought                = 70
+
+    rsi_oversold                  = 30
+
+    pct_chg                       = 'new'
+
+    boll                          = 'y'
+
+    boll_window_days              = 20
+
+    boll_weight                   = 2
+
+    fib                           = 'y'
 
 stock = ""
 
@@ -218,7 +246,7 @@ class StartPage(tk.Frame):
             a.run()
             
             
-        #-------------------------------------#
+        #-------------------------------------#`
         def update_rHT_config():
         #-------------------------------------#
             variable = rHT.get()
@@ -237,6 +265,50 @@ class StartPage(tk.Frame):
             
             a.run()
 
+        #-------------------------------------#
+        def update_pct_config():
+        #-------------------------------------#
+            variable = pct_chg.get()
+
+            a = ConfigUpdater('pct_chg',      variable)
+
+            a.run()
+
+        #-------------------------------------#
+        def update_boll_config():
+        #-------------------------------------#
+            variable = boll.get()
+
+            a = ConfigUpdater('boll',         variable)
+
+            a.run()
+        
+        #-------------------------------------#
+        def update_boll_window_days_config():
+        #-------------------------------------#
+            variable = bollWD.get()
+
+            a = ConfigUpdater('boll_window_days', variable)
+
+            a.run()
+
+        #-------------------------------------#
+        def update_boll_weight_config():
+        #-------------------------------------#
+            variable = bollW.get()
+
+            a = ConfigUpdater('boll_weight',  variable)
+
+            a.run()
+
+        #-------------------------------------#
+        def update_fib_config():
+        #-------------------------------------#
+            variable = fib.get()
+
+            a = ConfigUpdater('fib',      variable)
+
+            a.run()
  
         #-------------------------------------#
         def get_entryText():
@@ -292,8 +364,7 @@ class StartPage(tk.Frame):
         
         ,]
         
-
-
+ 
         label = tk.Label(self, text = "Stock Tracker Tool", fg = label_big_fg, bg = label_big_bg, font = ("Times", "24", "bold italic underline"))
         
         label.grid(row = 1, column = 0, sticky = 'w')
@@ -320,8 +391,20 @@ class StartPage(tk.Frame):
         
         rsiHigh_Tentry   = tk.StringVar()
 
+        pct_chg_Tentry   = tk.StringVar()
+
+        boll_Tentry      = tk.StringVar()
+
+        boll_window_days_Tentry = tk.StringVar()
+
+        boll_weight_Tentry = tk.StringVar()
+
+        fib_Tentry       = tk.StringVar()
+
         
         radio_days.set("365")
+
+
 
          
         x = tk.Radiobutton(self, text = RADIO_DAYS[0][0], bg = color_white,  fg = button_fg, variable = radio_days, value = RADIO_DAYS[0][1]).grid(row = programming_variable_start_row + 2, column = 0, padx = 0, sticky = 'W', )
@@ -331,24 +414,33 @@ class StartPage(tk.Frame):
         z = tk.Radiobutton(self, text = RADIO_DAYS[2][0], bg = color_white,  fg = button_fg, variable = radio_days, value = RADIO_DAYS[2][1]).grid(row = programming_variable_start_row + 2, column = 0, padx = 0, stick = 'E')
 
 
-        maShort_label   = tk.Label(self,text="    Moving Average days (short):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 13, column = 0, sticky = 'nw')
+        maShort_label   = tk.Label(self,text = "     Moving Average days (short):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 13, column = 0, sticky = 'nw')
+         
+        maLong_label    = tk.Label(self,text = "      Moving Average days (long):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 14, column = 0, sticky = 'nw')
         
-        maLong_label    = tk.Label(self,text="     Moving Average days (long):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 14, column = 0, sticky = 'nw')
+        macdShort_label = tk.Label(self,text = " Mov Avg Cnvg/DeCnvg short cycle:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 15, column = 0, sticky = 'nw')
         
-        macdShort_label = tk.Label(self,text="Mov Avg Cnvg/DeCnvg short cycle:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 15, column = 0, sticky = 'nw')
+        macdLong_label  = tk.Label(self,text = "  Mov Avg Cnvg/DeCnvg long cycle:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 16, column = 0, sticky = 'nw')
         
-        macdLong_label  = tk.Label(self,text="Mov Avg Cnvg/DeCnvg long cycle:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 16, column = 0, sticky = 'nw')
+        ema_label       = tk.Label(self,text = "  Exponential Moving Avg Periods:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 17, column = 0, sticky = 'nw')
         
-        ema_label       = tk.Label(self,text="Exponential Moving Avg Periods:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 17, column = 0, sticky = 'nw')
+        rsiLow_label    = tk.Label(self,text = "   Relative Strength Index % low:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 18, column = 0, sticky = 'nw')
         
-        rsiLow_label    = tk.Label(self,text=" Relative Strength Index % low:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 18, column = 0, sticky = 'nw')
+        rsiHigh_label   = tk.Label(self,text = "  Relative Strength Index % high:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 19, column = 0, sticky = 'nw')
         
-        rsiHigh_label   = tk.Label(self,text="Relative Strength Index % high:",  fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 19, column = 0, sticky = 'nw')
-        
+        pct_chg_label   = tk.Label(self, text = " Pct. Chg. Denominator (new/old):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 20, column = 0, sticky = 'nw')
  
+        boll_label      = tk.Label(self, text = "       Add Bollinger Bands (y/n):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 21, column = 0, sticky = 'nw')
+
+        boll_window_days_label  = tk.Label(self, text = "         Bollinger days (window):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 22, column = 0, sticky = 'nw')
+
+        boll_weight_label  = tk.Label(self, text = "                Bollinger weight:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 23, column = 0, sticky = 'nw')
+
+        fib_label       = tk.Label(self, text = "       Add Fibonacci color (y/n):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 24, column = 0, sticky = 'nw')
+
         a = ParseConfig()
         
-        movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold = a.run()
+        movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib = a.run()
 
 
         entryText.set('GOOG')
@@ -366,6 +458,16 @@ class StartPage(tk.Frame):
         rsiLow_Tentry.set(rsi_oversold)
         
         rsiHigh_Tentry.set(rsi_overbought)
+
+        pct_chg_Tentry.set(pct_chg)
+
+        boll_Tentry.set(boll)
+
+        boll_window_days_Tentry.set(boll_window_days)
+
+        boll_weight_Tentry.set(boll_weight)
+
+        fib_Tentry.set(fib)
         
 
         
@@ -386,6 +488,17 @@ class StartPage(tk.Frame):
         rLT  = tk.Entry(self, textvariable = rsiLow_Tentry,    width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
         
         rHT  = tk.Entry(self, textvariable = rsiHigh_Tentry,   width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+
+        pct_chg = tk.Entry(self, textvariable = pct_chg_Tentry,width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+
+        boll = tk.Entry(self,  textvariable = boll_Tentry,     width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+
+        bollWD = tk.Entry(self, textvariable = boll_window_days_Tentry,  width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+
+        bollW = tk.Entry(self, textvariable = boll_weight_Tentry, width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+
+        fib  = tk.Entry(self,  textvariable = fib_Tentry,      width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+
 
 
         eT1.grid( row =  4, column = 0, sticky = "e")
@@ -408,11 +521,20 @@ class StartPage(tk.Frame):
         
         rHT.grid( row = programming_variable_start_row + 19, column = 0, sticky = "e")
 
+        pct_chg.grid(row = programming_variable_start_row + 20, column = 0, sticky = "e")
+
+        boll.grid( row = programming_variable_start_row + 21, column = 0, sticky = "e")
+
+        bollWD.grid( row = programming_variable_start_row + 22, column = 0, sticky = "e")
+
+        bollW.grid( row = programming_variable_start_row + 23, column = 0, sticky = "e")
+
+        fib.grid( row = programming_variable_start_row + 24, column = 0, sticky = "e")
 
         
         buttonRadio = tk.Button(self, text = "Accept choice of historical days to track", fg = button_fg, height = 2, command = lambda: radio_chosen(radio_days.get())).grid(  row = programming_variable_start_row - 2,  column = 0, sticky = 'sew')
         
-        buttonmAST  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mAST_config).grid(row = programming_variable_start_row + 13,  column = 1, sticky = 'e')
+        buttonmAST  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mAST_config).grid(row = programming_variable_start_row + 13, column = 1, sticky = 'e')
         
         buttonmALT  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_mALT_config).grid(row = programming_variable_start_row + 14, column = 1, sticky = 'e')
         
@@ -426,6 +548,18 @@ class StartPage(tk.Frame):
         
         buttonrHT   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rHT_config).grid(row  = programming_variable_start_row + 19, column = 1, sticky = 'e')
 
+        buttonpct   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_pct_config).grid(row  = programming_variable_start_row + 20, column = 1, sticky = 'e')
+
+        buttonaBol  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_boll_config).grid(row = programming_variable_start_row + 21, column = 1, sticky = 'e')
+
+        buttonBolWD = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_boll_window_days_config).grid(row = programming_variable_start_row + 22, column = 1, sticky = 'e')
+
+        buttonBolW  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_boll_weight_config).grid(row = programming_variable_start_row + 23, column = 1, sticky = 'e')
+
+        buttonaFib  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_fib_config).grid(row = programming_variable_start_row + 24, column = 1, sticky = 'e')
+
+
+
 
         eT1.focus_set()
               
@@ -437,7 +571,7 @@ class StartPage(tk.Frame):
 
         buttonGraph.grid(row = 10, column = 1, sticky = 'e')
 
-        e2_label = tk.Label(self, fg = color_verbose, bg = label_bg, text = "First daily run takes up to 30 minutes to build the stocks\ndatawarehouse. Scraping 500+ stocks gets throttled by Yahoo!\nNew folder \"askew\" holds the build.", font = ("Monospace, 8"))
+        e2_label = tk.Label(self, fg = color_verbose, bg = label_bg, text = "First daily run takes up to 10 minutes to build the stocks\ndatawarehouse. Scraping 500+ stocks gets throttled by providers.\nNew folder \"askew\" holds the build.", font = ("Monospace, 8"))
 
         e2_label.grid(row = 10, column = 0, sticky = 'nw', rowspan = 3)
 
@@ -517,7 +651,7 @@ button_bg    = color_gray
 
 app = SeaofSTOXapp()
 
-app.geometry("405x410")
+app.geometry("415x540")
 
 app.mainloop()
 
