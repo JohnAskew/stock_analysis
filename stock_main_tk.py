@@ -201,6 +201,50 @@ class StartPage(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         #-------------------------------------#
+        def update_sEL_config(stock_dict):
+        #-------------------------------------#
+            variable = sel.get()
+
+            if len(variable) == 0:
+
+                pass
+
+            else:
+            
+                stocks_listbox.insert(1, variable)
+
+                if len(stock_dict) > 3:
+                
+                    stocks_listbox.delete(-1) #(len(stock_dict)))
+
+                stock_list = [variable]
+
+                for k, v in stock_dict.items():
+                
+                    stock_list.append(v)
+
+                    stock_dict.pop(v, None)
+
+                if len(stock_list) > 3:
+                    stock_list.pop()
+                
+                stock_list = list(set(stock_list))
+
+                stock_cnt = 1
+
+                for in_stock in stock_list:
+                    
+                    exec('stock_dict[\'stock' + str(stock_cnt) + "'] = "  + "'" + in_stock + "'")
+                    
+                    stock_cnt += 1
+
+                a = ConfigUpdater('sel_stocks',(",".join(map(str,stock_list))))
+
+                a.run()
+
+            return stock_dict
+
+        #-------------------------------------#
         def update_mAST_config():
         #-------------------------------------#
             variable = mAST.get()
@@ -373,6 +417,12 @@ class StartPage(tk.Frame):
         
         eT1_label.grid(row = 4, column = 0, sticky = "w")
 
+        sEL_label = tk.Label(self, text = "Add stocks to database build ==>", fg = label_fg_red, bg = label_bg, font = ("Courier New", "10", "bold"), width = 35)
+
+        sEL_label.grid(row = 14, column = 0, sticky  = "w")
+
+        sEL_Tentry       =tk.StringVar()
+
         radio_days       = tk.StringVar()
         
         entryText        = tk.StringVar()
@@ -403,9 +453,6 @@ class StartPage(tk.Frame):
 
         
         radio_days.set("365")
-
-
-
          
         x = tk.Radiobutton(self, text = RADIO_DAYS[0][0], bg = color_white,  fg = button_fg, variable = radio_days, value = RADIO_DAYS[0][1]).grid(row = programming_variable_start_row + 2, column = 0, padx = 0, sticky = 'W', )
         
@@ -440,8 +487,61 @@ class StartPage(tk.Frame):
 
         a = ParseConfig()
         
-        movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib = a.run()
+        movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks = a.run()
+#######################################
+# L I S T  B O X  P R O C E S S I N G
+#######################################
+#-------------------------------------#
+### Parse out the stocks in the list box
+#-------------------------------------#
+        sel_stockz = sel_stocks.split(',')
 
+        stock_cnt = 1
+        
+        stock_dict = {}
+        
+        stock1 =''
+        
+#-------------------------------------#
+# Load into dictionary
+#-------------------------------------#
+
+        for in_stock in sel_stockz:
+        
+            exec('stock_dict[\'stock' + str(stock_cnt) + "'] = "  + "'" + in_stock + "'")
+        
+            stock_cnt += 1
+
+        stock_dict_cnt = 1
+
+#-------------------------------------#
+# Define Listbox
+#-------------------------------------#
+
+        stocks_listbox = tk.Listbox(self, width = 7, height = 4)
+
+        sel_label2 = tk.Label(self, fg = color_verbose, bg = label_bg, text = "Override / Add new stocks that do not appear\nin standard stock symbol search.", font = ("Monospace, 8"))
+
+        sel_label2.grid(row = 15, column = 0, sticky = 'n', rowspan = 2)
+
+#-------------------------------------#
+# Load Listbox
+#-------------------------------------#
+        
+        for k, v in stock_dict.items():
+        
+            stocks_listbox.insert(stock_dict_cnt,v)
+        
+            stock_dict_cnt += 1
+
+#-------------------------------------#
+# Listbox placement
+#-------------------------------------#
+
+        stocks_listbox.grid(row =  16, column = 1, sticky = "w")
+#######################################
+# Continue on with setting Text boxes
+#######################################
 
         entryText.set('GOOG')
         
@@ -470,7 +570,8 @@ class StartPage(tk.Frame):
         fib_Tentry.set(fib)
         
 
-        
+        sel  = tk.Entry(self, textvariable = sEL_Tentry,   width = 5, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+
         rBC  = tk.Entry(self, textvariable = radio_days,       width = 8, fg = entry_fg, bg = entry_bg)
         
         eT1  = tk.Entry(self, textvariable = entryText,        width = 8, fg = entry_fg, bg = entry_bg)
@@ -502,6 +603,8 @@ class StartPage(tk.Frame):
 
 
         eT1.grid( row =  4, column = 0, sticky = "e")
+
+        sel.grid( row =  14, column = 0, sticky = "e")
         
         separator_label1 = tk.Label(self, text = '___________________________________________________________',bg = label_separator_bg, fg = label_separator_fg,).grid(row = 17, column = 0, sticky = 'w')
         
@@ -531,6 +634,8 @@ class StartPage(tk.Frame):
 
         fib.grid( row = programming_variable_start_row + 24, column = 0, sticky = "e")
 
+
+        buttonSEL   = tk.Button(self, text = "Add Stock", fg = button_fg, bg = button_bg, height = 0, command = lambda: update_sEL_config(stock_dict)).grid(row =14, column = 1, sticky = 'w')
         
         buttonRadio = tk.Button(self, text = "Accept choice of historical days to track", fg = button_fg, height = 2, command = lambda: radio_chosen(radio_days.get())).grid(  row = programming_variable_start_row - 2,  column = 0, sticky = 'sew')
         
@@ -645,13 +750,10 @@ button_fg    = color_blue
 
 button_bg    = color_gray
 
-# style = ttk.Style()
-
-# style.configure("But.ton", foreground = button_fg, background = button_bg)
 
 app = SeaofSTOXapp()
 
-app.geometry("415x540")
+app.geometry("415x630")
 
 app.mainloop()
 

@@ -6,17 +6,7 @@
 
     returns a dictionary containing that information.
 '''
-import os
-
-try:
-    
-    import sys
-
-except:
-
-    os.system('pip install sys')
-
-    import sys
+import os, sys
 
 try:
 
@@ -52,9 +42,14 @@ except:
 
     import requests
 
-if len(sys.argv) > 1:
+try:
+    if len(sys.argv) > 1:
 
      term = sys.argv[1]
+
+except:
+
+    print("tools_scrape_profile has issues with sys.argv. Skipping passed arguments and using default ticker.")
 
 else:
 
@@ -91,10 +86,6 @@ class ScrapProfile:
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        with open("soup.txt", 'w') as file:
-        
-            file.write(str(soup))
-        
         ci_dict = {}
         
         co_name = soup.find('title')
@@ -121,8 +112,6 @@ class ScrapProfile:
 
             ci_dict["info"] = i
 
-        print(ci_dict)
-
         return ci_dict
 
 #######################################
@@ -133,4 +122,6 @@ if __name__ == "__main__":
 
     a = ScrapProfile(stock.lower())
     
-    a.run()
+    x = a.run()
+
+    print(x)

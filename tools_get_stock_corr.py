@@ -29,7 +29,9 @@ stock = ""
 #########################################
 class corr():
 #########################################
+    #-----------------------------------#    
     def __init__(self, stock):
+    #-----------------------------------#    
         
         self.stock = stock
         
@@ -43,33 +45,50 @@ class corr():
         
             sys.exit(0)
     
+    #-----------------------------------#    
     def run(self, stock):
+    #-----------------------------------#    
     
         mystocks = visualize_data(stock)
     
         return mystocks
 
-
+#-------------------------------------#    
 def visualize_data(stock):
-    #DEBUG print("Entering visualize_data with stock", stock)
-    
+#-------------------------------------#    
     os.chdir(myPath)
+
+    try:
     
-    df  = pd.read_csv('sp500_joined_closes.csv')
+        df  = pd.read_csv('sp500_joined_closes.csv')
+    except Exception as e:
+
+        print("tools_get_stock_corr ==> Unable to read sp500_joined_closes.csv - is it there? Aborting correlation calculations.")
+
+        print(e)
+
+        return 0
 
     df_corr = df.corr()
     
     df1 = pd.DataFrame(columns = df_corr.columns)
+
+    try:
     
-    df1  = df_corr[[stock]]
+        df1  = df_corr[[stock]]
+
+    except Exception as e:
+
+        print("tools_get_stock_corr ==> Unable to calculate correlations on stock:", stock, "Is it defined in your search list?")
+
+        print(e)
+
+        return 0
     
     df1.reset_index()
     
     df1.set_index(df1.axes[0])
    
-    #DEBUG print("df1.axes[0] =", df1.axes[0])
-    #DEBUG print("df1.axes[1] = ", df1.axes[1])
-    
     data = df1.values
     
     dict = {}
@@ -80,13 +99,9 @@ def visualize_data(stock):
     
         if datum > .80 and datum < 1:
     
-            #DEBUG print("tools_get_stock_corr -->datum:", datum, "counter:", counter, "column:", (df1.axes[0][counter]))
-    
             dict[(df1.axes[0][counter])] = float(datum)
     
         counter += 1
-    
-    #DEBUG print("tools_get_stock_corr returning -->", dict)
     
     return dict
 

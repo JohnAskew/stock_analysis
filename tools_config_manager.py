@@ -13,11 +13,11 @@ class ConfigUpdater:
     def run(self):
         self.config = configparser.ConfigParser()
 
-        self.config.read('config.py')
+        self.config.read('config.ini')
 
         self.config.set('DEFAULT', self.parameter, self.variable)
 
-        with open('config.py', 'w') as configfile:
+        with open('config.ini', 'w') as configfile:
             self.config.write(configfile)
 
 if __name__ == "__main__":

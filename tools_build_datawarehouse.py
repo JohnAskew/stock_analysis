@@ -161,17 +161,27 @@ except Exception as e:
 
     movavg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
     
-    movavg_window_days_long_term = 30                                         #Moving Average 30 days (slow)
+    movavg_window_days_long_term  = 30                                         #Moving Average 30 days (slow)
     
-    macd_periods_long_term = 26
+    macd_periods_long_term        = 26
     
-    macd_periods_short_term = 12
+    macd_periods_short_term       = 12
     
-    expma_periods = 9 
+    expma_periods                 = 9 
+
+    pct_chg                       = 'new'
+
+    boll                          = 'y'
+
+    boll_window                   = 20
+
+    boll_weight                   = 2
+
+    fib                           = 'y'
 
 try:
     
-    movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib = a.run()
+    movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks = a.run()
     ##
     ### Convert numeric config settings to integer. String vars need no conversion.
     ##
@@ -261,9 +271,9 @@ def get_fina_summary(csv, stock = 'JCP'):
    
     try:
 
-        col_list.append("BID")
+        # col_list.append("BID")
 
-        col_list.append("ASK")
+        # col_list.append("ASK")
 
         col_list.append("TD_VOLUME")
 
@@ -280,9 +290,9 @@ def get_fina_summary(csv, stock = 'JCP'):
         col_list.append("ONE_YEAR_TARGET_PRICE")
 
 
-        fin_list.append(company_json["OTHER_DETAILS"]["BID"])
+        # fin_list.append(company_json["OTHER_DETAILS"]["BID"])
 
-        fin_list.append(company_json["OTHER_DETAILS"]["ASK"])
+        # fin_list.append(company_json["OTHER_DETAILS"]["ASK"])
 
         fin_list.append(company_json["OTHER_DETAILS"]["TD_VOLUME"])
 
@@ -435,17 +445,13 @@ def save_sp500_stocks():
 
     stocks = stocks_wiki # temp code, while we remove the NASDAQ stocks -- 3500 stocks
 
-    stocks.append('JCP')
+    print(stocks)
 
-    stocks.append('MANH')
+    sel_stockz = sel_stocks.split(',')
 
-    stocks.append('ITMC')
+    for in_stock in sel_stockz:
 
-    stocks.append('TSLA')
-
-    stocks.append('HEMP')
-
-    stocks.append('HYYWF')
+        stocks.append(in_stock)
 
     stocks = list(set(stocks))
 
@@ -476,6 +482,14 @@ def get_data_from_yahoo(reload_sp500 = True):
     
     end = dt.datetime.today()           # format of today() = [yyyy, mm, dd] - list of integers
 
+    ##
+    ### If now is before today's market is open, then skip. 
+    ##
+    
+    market_open  = dt.datetime.strptime("09:00", "%H:%M")
+
+    market_open  = dt.datetime.time(market_open)
+
     for subject in stocks:
     
         saveFile=('{}'.format(subject) + '.csv')    # The RESUlTS we are saving on a daily basis
@@ -484,13 +498,7 @@ def get_data_from_yahoo(reload_sp500 = True):
 
             st = os.stat(saveFile)     #The csv date (created)
 
-            ##
-            ### If Current, simply exit. If now is before today's market is open, then skip. 
-            ##
-            
-            market_open  = dt.datetime.strptime("09:00", "%H:%M")
 
-            market_open  = dt.datetime.time(market_open)
 
             if (os.path.exists(saveFile)) and (( dt.datetime.now().time() < market_open) or ((dt.date.fromtimestamp(st.st_mtime) == dt.date.today()))):
 
@@ -582,7 +590,7 @@ def stocks_join_closeprice():
 
             try:
 
-                df.drop(['Open', 'High','Low','Close', 'Volume', 'MA10', 'MA30', 'RSI', 'MACD', 'EMA9', 'BID',  'ASK', 'TD_VOLUME', 'PE_RATIO', 'EPS_RATIO', 'AVERAGE_VOLUME_3MONTH', 'MARKET_CAP', 'DIVIDEND_AND_YIELD', 'ONE_YEAR_TARGET_PRICE'], axis = 1, inplace = True)
+                df.drop(['Open', 'High','Low','Close', 'Volume', 'MA10', 'MA30', 'RSI', 'MACD', 'EMA9', 'TD_VOLUME', 'PE_RATIO', 'EPS_RATIO', 'AVERAGE_VOLUME_3MONTH', 'MARKET_CAP', 'DIVIDEND_AND_YIELD', 'ONE_YEAR_TARGET_PRICE'], axis = 1, inplace = True)
             
             except Exception as e:
 
