@@ -1,7 +1,7 @@
 # stock_analysis
 stock_main_tk.py is the driver module. This project should be plug and play.
 
-Presentation includes ohlc candlesticks, dual bank moving averages, macd, optional bollinger bands and fibonacci retracement bands, sentiment analysis from Google News and stocks which have an 80% or greater correlation to your stock.
+Presentation includes ohlc candlesticks, dual band moving averages, macd, optional bollinger bands and fibonacci retracement bands, sentiment analysis from Google News and stocks which have an 80% or greater correlation to your stock.
 
 By default, this project is driven by S&P500 stock data. The data is always 365 days worth of data, current as of time of running. The data is extracted and saved in a series of spreadsheets, located in new folder, "askew". 
 
