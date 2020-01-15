@@ -213,7 +213,7 @@ class StartPage(tk.Frame):
             
                 stocks_listbox.insert(1, variable)
 
-                if len(stock_dict) > 3:
+                if len(stock_dict) > 4:
                 
                     stocks_listbox.delete(-1) #(len(stock_dict)))
 
@@ -225,7 +225,7 @@ class StartPage(tk.Frame):
 
                     stock_dict.pop(v, None)
 
-                if len(stock_list) > 3:
+                if len(stock_list) > 4:
                     stock_list.pop()
                 
                 stock_list = list(set(stock_list))

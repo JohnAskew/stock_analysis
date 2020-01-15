@@ -18,11 +18,9 @@ TTTTTTTTTT         D D
     TT  o   o      D   D    o   o
     TT  00000      D D      ooooo
 
-1. Add compamy name and information at top of presentation
+1. Add Average Directional Movement Index and Avg. True Range
 
 2. Add Percent Change chart - if there is value (let user determine denomintor
-)
-3. Yellow buy bands for RSI score < 30%.
 
 4. Convert OHLC to Heiken Ashi OHLC (See Formulaz)
 
@@ -293,6 +291,43 @@ boll_weight                   = int(boll_weight)
 ########################################################
 # Functions (before Main Logic)
 ########################################################
+#-------------------------------------#
+def calc_true_range(df_temp):
+#-------------------------------------#
+    Date = df_temp['Date']
+    
+    Open = df_temp['Open']
+    
+    High = df_temp['High']
+    
+    Low  = df_temp['Low']
+    
+    Close = df_temp['Close']
+
+    x = High - Low
+    
+    y = abs(High - Close.shift(1))
+    
+    z = abs(Low - Close.shift(1))
+    
+    TR = pd.Series([])
+
+    for i in range(len(Date)):
+
+        if    ( y[i] <= x[i])  and (x[i] >= z[i]):
+
+                TR[i] = x[i]
+
+        elif  (x [i] <= y[i])  and (y[i] >= z[i]):
+
+                TR[i] = y[i]
+
+        elif (  x[i] <= z[i])  and (z[i] >= y[i]):
+
+                TR[i] = z[i]
+
+
+    return Date, TR
 
 #-------------------------------------#
 def popupmsg(msg):
@@ -490,11 +525,12 @@ myPath = (currPath + '/' + savePath)# The full path of the new sub-dir
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-##
+#-------------------------------------#
 ### Fibbonacci Retracements - which column to use.
 ###                           compare Close to Adj_Close.
-## 
+#-------------------------------------#
 fibbonacci_column = 'Close'
+
 bollinger_column = 'Close'
 
 
@@ -531,7 +567,7 @@ try:
         
         try:
             
-            subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
+            subprocess.call(["python3", dir_path + "/" + "tools_build_datawarehouse.py"])
             
         except:
 
@@ -543,7 +579,7 @@ try:
 
 except:
     
-    subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
+    subprocess.call(["python3", dir_path + "/" + "tools_build_datawarehouse.py"])
 
 ########################################################
 ## Let's define our canvas, before we go after the data
@@ -580,9 +616,9 @@ ax1_tot  = plt.subplot2grid((plot_row,plot_col), (155,0), rowspan = 30, colspan 
 
 ax1_tot2 = plt.subplot2grid((plot_row,plot_col), (155,3), rowspan = 30, colspan = 1)
 
-##
+#-------------------------------------#
 ### ax_b comes first so other graphs can sharex with ax_b
-##
+#-------------------------------------#
 
 ax_b    = plt.subplot2grid((plot_row,plot_col), (12, 6), rowspan = 83, colspan = 6)
 
@@ -615,7 +651,6 @@ ax3_sim_stock2.set_visible(False)
 
 ax3_sim_stock3.set_visible(False)
 
-#ax_footer_1   =  plt.subplot2grid((plot_row, plot_col), (195,6), rowspan = 30, colspan = 20)
 ax_footer_1   =  plt.subplot2grid((plot_row, plot_col), (195,0), rowspan = 100, colspan = 20)
 
 ########################################################
@@ -670,8 +705,38 @@ else:
 
     df_ohlc = df['Adj_Close'].resample('5D').ohlc()
 
+#######################################
+# Calculate Average True Range
+#######################################
+
+#-------------------------------------#
+# Start with calc. True Range, first
+#-------------------------------------#
+
+df_temp = df
+
+df_temp.reset_index(inplace = True)
+
+df_temp =  df_temp[['Date', 'Open', 'High', "Low", "Close"]]
+
+x = 1
+
+TRDates = []
+
+TrueRanges = []
+
+TRDates, TrueRanges = calc_true_range(df_temp)
+
+#----------------------------------------#
+# Now calc Avg. True Range
+#----------------------------------------#
+
+ATR = calc_ema(TrueRanges, 14)
 
 
+##########################################
+# Calculate OHLC - Candlestick
+##########################################
 
 
 df_ohlc.reset_index(inplace = True)
@@ -705,6 +770,7 @@ start = len(df['Date'][movavg_window_days_long_term - 1:])
 #Start Plotting
 ########################################################
 ax1_year.plot_date(df['Date'], df['Adj_Close'], '-', label='ADJ Closing Price', color = 'blue', linewidth = 1)
+
 
 ax1_year.plot([],[], linewidth = 2, label = 'Adj_Close yr ago' , color = 'k', alpha = 0.9)
 
@@ -758,9 +824,9 @@ ax1_ma.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, m
 
 ax1_ma.set_ylabel('Mov.Avg.', fontsize=8, fontweight =5, color = 'r')
 
-##
+#-------------------------------------#
 ### ax1_rsi
-##
+#-------------------------------------#
 rsi = calc_rsi(df["Close"])
 
 rotate_xaxis(ax1_rsi)
@@ -797,7 +863,9 @@ ax1_rsi.plot([],[], linewidth = 2, label = 'UnderVal' , color = 'darkgreen', alp
 
 ax1_rsi.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 2, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
-
+#-------------------------------------#
+# M A C D
+#-------------------------------------#
 eMaSlow, eMaFast, macd = calc_macd(df['Close'])
 
 ema9 = calc_ema(macd, expma_periods)
@@ -832,9 +900,9 @@ ax1_macd.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'bl
 
 ax1_macd.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0., fontsize = 6.0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
-
+#-------------------------------------#
 ### ax1_vol
-##
+#-------------------------------------#
 ax1_vol.tick_params(axis = 'x', colors = '#890b86')
 
 ax1_vol.plot_date(df['Date'], df['Volume'], '-', label='Volume', color = 'blue', linewidth = 1)
@@ -865,21 +933,15 @@ last_vol  = df['Volume'].iloc[-1]
 
 last_close = df['Close'].iloc[-1]
 
-
-
 #--------------------------------------#
 # F I N A N C I A L   D E T A I L S
 #   scrunched up to fit the frame
 #--------------------------------------#
-# a = altAnalysis(ax1_subject)
-
-# company_json = a.run()
 
 hide_frame(ax1_tot)
 
 hide_frame(ax1_tot2)
 
-#Askew rec = Rectangle((autoAxis[0]-0.1,autoAxis[2]-0.2),(autoAxis[1]-autoAxis[0])+1,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
 rec = Rectangle((autoAxis[0]-0.5,autoAxis[2]-0.1),(autoAxis[1]-autoAxis[0])+5.7,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
 
 rec = ax1_tot.add_patch(rec)
@@ -969,7 +1031,7 @@ rotate_xaxis(ax_a)
 
 set_spines(ax_a)
 
-ax_a.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+ax_a.tick_params(axis = 'y', colors = 'darkorange', labelsize = 6)
 
 ax_a.set_ylabel('RSI', fontsize=8, fontweight =5, color = 'darkorange')
 
@@ -1173,7 +1235,7 @@ plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
 
 ax_c.tick_params(axis = 'x', colors = '#890b86')
 
-ax_c.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+ax_c.tick_params(axis = 'y', colors = 'darkred', labelsize = 6)
 
 ax_c.set_ylabel('MACD', fontsize=8, fontweight =5, color = 'darkred')
 
@@ -1203,30 +1265,35 @@ ax_d.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
 
 
 
-#-------------------------------------#
+'''#-------------------------------------#
 # Added Signal detrend
 #-------------------------------------#
-if pct_chg == 'old':
+# if pct_chg == 'old':
 
-    ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close']) * 100, linewidth =1, color = 'blue')
+#     ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close']) * 100, linewidth =1, color = 'blue')
 
-else:
-    ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close'].shift(1)) * 100, linewidth =1, color = 'blue')
+# else:
+#     ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close'].shift(1)) * 100, linewidth =1, color = 'blue')
 
+'''
+#-------------------------------------#
+# Average True Range Plotting
+#-------------------------------------#
+ax_e.plot(df['Date'][0:], ATR, linewidth =1, color = 'blue')
 
-rotate_xaxis(ax_e)
+ax_e.get_xaxis().set_visible(False)
 
 set_spines(ax_e)
 
 set_labels(ax_e)
 
-ax_e.tick_params(axis = 'x', colors = '#890b86')
+ax_e.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
 
 ax_e.tick_params(axis = 'y', colors = 'g', labelsize = 0)
 
-ax_e.get_xaxis().set_visible(False)
+ax_e.set_ylabel('Avg TrueRng',fontsize=8, fontweight =5, color = 'blue')
 
-ax_e.set_ylabel('% Chg',fontsize=8, fontweight =5, color = 'darkred')
+ax_e.tick_params(axis = 'y', colors = 'blue', labelsize = 6)
 
 #######################################
 # S T A R T   S E N T I M E N T   A N.#
@@ -1507,9 +1574,22 @@ else:
 
             ax3_sim_stock3.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#f9ffb7')
 
-    hide_frame(ax_footer_1)
+#######################################
+# F O O T E R  C H A R T
+#######################################
+    #hide_frame(ax_footer_1)
+
+    ax_footer_1.plot_date(df['Date'][1:], ATR, '-', label='Average True Range', color = 'blue', linewidth = 1)
 
     set_spines(ax_footer_1)
+
+    rotate_xaxis(ax_footer_1)
+
+    ax_footer_1.tick_params(axis = 'x', colors = '#890b86', labelsize = 10)
+
+    ax_footer_1.set_ylabel('Avg. True Rng', fontsize=8, fontweight =5, color = 'blue')
+
+    ax_footer_1.tick_params(axis = 'y', colors = 'blue', labelsize = 6)
 
 #######################################
 # Scrape company info 
@@ -1518,13 +1598,14 @@ else:
 a = ScrapProfile(ax1_subject.lower())
 
 my_dict   = a.run()
+
 my_name   = my_dict["name"]
+
 my_ticker = my_dict["ticker"]
+
 my_info   = my_dict["info"]
+
 my_info   = my_info[0:300:]
-
-
-
 
 plt.rc('ytick', labelsize=6 )    # fontsize of the tick labels
 
