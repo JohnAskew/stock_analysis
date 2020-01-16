@@ -32,7 +32,8 @@ class ParseConfig:
         ,config['DEFAULT']['boll_window_days']                    \
         ,config['DEFAULT']['boll_weight']                         \
         ,config['DEFAULT']['fib']                                 \
-        ,config['DEFAULT']['sel_stocks']
+        ,config['DEFAULT']['sel_stocks']                          \
+        ,config['DEFAULT']['atradx']
 
 
 #######################################
@@ -41,9 +42,9 @@ class ParseConfig:
 if __name__ == '__main__':
 
     a = ParseConfig()
-    movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks = a.run()
+    movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks, atradx = a.run()
 
-    print(movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks)
+    print(movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks, atradx)
 
 
 

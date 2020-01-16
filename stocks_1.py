@@ -1,4 +1,4 @@
-#! python3
+#! python
 ''' Modified the SentDex stock graphing solution found on YouTube. Context
 included the series on graphing a Stock, buidling an S&P 500 heatmap, 
 Tkinter UI series for Bitcoin:
@@ -18,9 +18,11 @@ TTTTTTTTTT         D D
     TT  o   o      D   D    o   o
     TT  00000      D D      ooooo
 
-1. Add Average Directional Movement Index and Avg. True Range
+1. Add compamy name and information at top of presentation
 
 2. Add Percent Change chart - if there is value (let user determine denomintor
+)
+3. Yellow buy bands for RSI score < 30%.
 
 4. Convert OHLC to Heiken Ashi OHLC (See Formulaz)
 
@@ -266,7 +268,7 @@ stock_date_adj = int(0)
 
 a = ParseConfig()
 
-movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks = a.run()
+movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks, atradx = a.run()
 ##
 ### Convert numeric config settings to integer. String vars need no conversion.
 ##
@@ -288,21 +290,89 @@ boll_window_days              = int(boll_window_days)
 
 boll_weight                   = int(boll_weight)
 
+atradx                        = int(atradx)
+
 ########################################################
 # Functions (before Main Logic)
 ########################################################
+
+def calc_DM(df_dm):
+
+    Date = df_atr['Date']
+    
+    Open = df_atr['Open']
+    
+    High = df_atr['High']
+    
+    Low  = df_atr['Low']
+    
+    Close = df_atr['Close']
+
+    YOpen = df_dm['Open'].shift(1)
+
+    YHigh = df_dm['High'].shift(1)
+
+    YLow  = df_dm['Low'].shift(1)
+
+    YClose = df_dm['Close'].shift(1)
+
+    #
+    ## Start calculations
+    #
+
+    PDM = pd.Series([])
+    NDM = pd.Series([])
+
+    for i in range(len(Date)):
+
+        moveUp = High[i] - YHigh[i]
+        moveDown = YLow[i] - Low[i]
+
+        if ( 0 < moveUp ) and (moveUp > moveDown):
+
+            PDM[i] = moveUp
+
+        else:
+
+            PDM[i] = 0
+
+        if (0 < moveDown ) and ( moveDown > moveUp):
+
+            NDM[i] = moveDown
+
+        else:
+
+            NDM [i]= 0
+
+    return Date, PDM, NDM
+
 #-------------------------------------#
-def calc_true_range(df_temp):
+def calcDIs(df_dm):
 #-------------------------------------#
-    Date = df_temp['Date']
+
+    PosDMs     = pd.Series([])
+    NegDMs     = pd.Series([])
+
+    DMDate, PosDMs, NegDMs = calc_DM(df_dm)
+
+    expPosDM = calc_ema(PosDMs, atradx)
+    expNegDM = calc_ema(NegDMs, atradx)
+
+    return expPosDM, expNegDM
+
+
+#-------------------------------------#
+def calc_true_range(df_atr):
+#-------------------------------------#
+    Date = df_atr['Date']
     
-    Open = df_temp['Open']
+    Open = df_atr['Open']
     
-    High = df_temp['High']
+    High = df_atr['High']
     
-    Low  = df_temp['Low']
+    Low  = df_atr['Low']
     
-    Close = df_temp['Close']
+    Close = df_atr['Close']
 
     x = High - Low
     
@@ -325,7 +395,6 @@ def calc_true_range(df_temp):
         elif (  x[i] <= z[i])  and (z[i] >= y[i]):
 
                 TR[i] = z[i]
-
 
     return Date, TR
 
@@ -525,12 +594,11 @@ myPath = (currPath + '/' + savePath)# The full path of the new sub-dir
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-#-------------------------------------#
+##
 ### Fibbonacci Retracements - which column to use.
 ###                           compare Close to Adj_Close.
-#-------------------------------------#
+## 
 fibbonacci_column = 'Close'
-
 bollinger_column = 'Close'
 
 
@@ -567,7 +635,7 @@ try:
         
         try:
             
-            subprocess.call(["python3", dir_path + "/" + "tools_build_datawarehouse.py"])
+            subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
             
         except:
 
@@ -579,7 +647,7 @@ try:
 
 except:
     
-    subprocess.call(["python3", dir_path + "/" + "tools_build_datawarehouse.py"])
+    subprocess.call(["python", dir_path + "/" + "tools_build_datawarehouse.py"])
 
 ########################################################
 ## Let's define our canvas, before we go after the data
@@ -616,9 +684,9 @@ ax1_tot  = plt.subplot2grid((plot_row,plot_col), (155,0), rowspan = 30, colspan 
 
 ax1_tot2 = plt.subplot2grid((plot_row,plot_col), (155,3), rowspan = 30, colspan = 1)
 
-#-------------------------------------#
+##
 ### ax_b comes first so other graphs can sharex with ax_b
-#-------------------------------------#
+##
 
 ax_b    = plt.subplot2grid((plot_row,plot_col), (12, 6), rowspan = 83, colspan = 6)
 
@@ -651,6 +719,7 @@ ax3_sim_stock2.set_visible(False)
 
 ax3_sim_stock3.set_visible(False)
 
+#ax_footer_1   =  plt.subplot2grid((plot_row, plot_col), (195,6), rowspan = 30, colspan = 20)
 ax_footer_1   =  plt.subplot2grid((plot_row, plot_col), (195,0), rowspan = 100, colspan = 20)
 
 ########################################################
@@ -713,11 +782,11 @@ else:
 # Start with calc. True Range, first
 #-------------------------------------#
 
-df_temp = df
+df_atr = df
 
-df_temp.reset_index(inplace = True)
+df_atr.reset_index(inplace = True)
 
-df_temp =  df_temp[['Date', 'Open', 'High', "Low", "Close"]]
+df_atr =  df_atr[['Date', 'Open', 'High', "Low", "Close"]]
 
 x = 1
 
@@ -725,14 +794,53 @@ TRDates = []
 
 TrueRanges = []
 
-TRDates, TrueRanges = calc_true_range(df_temp)
+TRDates, TrueRanges = calc_true_range(df_atr)
 
 #----------------------------------------#
 # Now calc Avg. True Range
 #----------------------------------------#
 
-ATR = calc_ema(TrueRanges, 14)
+ATR = calc_ema(TrueRanges, atradx)
 
+##########################################
+# Calculate ADX
+##########################################
+
+df_dm = df
+
+df_dm.reset_index(inplace = True)
+
+df_dm = df_dm[['Date', 'Open', 'High', 'Low', 'Close']]
+
+expPosDM = []
+expNegDM = []
+
+expPosDM, expNegDM = calcDIs(df_dm)
+
+xx = 0
+
+PDIs = []
+NDIs = []
+
+while xx < len(ATR):
+    PDI = 100 * (expPosDM[xx] / ATR[xx])
+    PDIs.append(PDI)
+
+    NDI = 100 * (expNegDM[xx] / ATR[xx])
+    NDIs.append(NDI)
+
+    xx += 1
+
+xxx = 0
+
+DXs = []
+
+while xxx < (len(df_dm['Date'][1:])):
+    DX = 100 * ( abs( PDIs[xxx] - NDIs[xxx]) ) / (PDIs[xxx] + NDIs[xxx]) 
+    DXs.append(DX)
+    xxx += 1
+
+ADX = calc_ema(DXs, atradx)
 
 ##########################################
 # Calculate OHLC - Candlestick
@@ -824,9 +932,9 @@ ax1_ma.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, m
 
 ax1_ma.set_ylabel('Mov.Avg.', fontsize=8, fontweight =5, color = 'r')
 
-#-------------------------------------#
+##
 ### ax1_rsi
-#-------------------------------------#
+##
 rsi = calc_rsi(df["Close"])
 
 rotate_xaxis(ax1_rsi)
@@ -863,9 +971,7 @@ ax1_rsi.plot([],[], linewidth = 2, label = 'UnderVal' , color = 'darkgreen', alp
 
 ax1_rsi.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 2, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
-#-------------------------------------#
-# M A C D
-#-------------------------------------#
+
 eMaSlow, eMaFast, macd = calc_macd(df['Close'])
 
 ema9 = calc_ema(macd, expma_periods)
@@ -900,9 +1006,9 @@ ax1_macd.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'bl
 
 ax1_macd.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0., fontsize = 6.0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
-#-------------------------------------#
+
 ### ax1_vol
-#-------------------------------------#
+##
 ax1_vol.tick_params(axis = 'x', colors = '#890b86')
 
 ax1_vol.plot_date(df['Date'], df['Volume'], '-', label='Volume', color = 'blue', linewidth = 1)
@@ -933,15 +1039,21 @@ last_vol  = df['Volume'].iloc[-1]
 
 last_close = df['Close'].iloc[-1]
 
+
+
 #--------------------------------------#
 # F I N A N C I A L   D E T A I L S
 #   scrunched up to fit the frame
 #--------------------------------------#
+# a = altAnalysis(ax1_subject)
+
+# company_json = a.run()
 
 hide_frame(ax1_tot)
 
 hide_frame(ax1_tot2)
 
+#Askew rec = Rectangle((autoAxis[0]-0.1,autoAxis[2]-0.2),(autoAxis[1]-autoAxis[0])+1,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
 rec = Rectangle((autoAxis[0]-0.5,autoAxis[2]-0.1),(autoAxis[1]-autoAxis[0])+5.7,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
 
 rec = ax1_tot.add_patch(rec)
@@ -1031,7 +1143,7 @@ rotate_xaxis(ax_a)
 
 set_spines(ax_a)
 
-ax_a.tick_params(axis = 'y', colors = 'darkorange', labelsize = 6)
+ax_a.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
 ax_a.set_ylabel('RSI', fontsize=8, fontweight =5, color = 'darkorange')
 
@@ -1235,7 +1347,7 @@ plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
 
 ax_c.tick_params(axis = 'x', colors = '#890b86')
 
-ax_c.tick_params(axis = 'y', colors = 'darkred', labelsize = 6)
+ax_c.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
 ax_c.set_ylabel('MACD', fontsize=8, fontweight =5, color = 'darkred')
 
@@ -1265,35 +1377,30 @@ ax_d.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
 
 
 
-'''#-------------------------------------#
+#-------------------------------------#
 # Added Signal detrend
 #-------------------------------------#
-# if pct_chg == 'old':
+if pct_chg == 'old':
 
-#     ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close']) * 100, linewidth =1, color = 'blue')
+    ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close']) * 100, linewidth =1, color = 'blue')
 
-# else:
-#     ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close'].shift(1)) * 100, linewidth =1, color = 'blue')
+else:
+    ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close'].shift(1)) * 100, linewidth =1, color = 'blue')
 
-'''
-#-------------------------------------#
-# Average True Range Plotting
-#-------------------------------------#
-ax_e.plot(df['Date'][0:], ATR, linewidth =1, color = 'blue')
 
-ax_e.get_xaxis().set_visible(False)
+rotate_xaxis(ax_e)
 
 set_spines(ax_e)
 
 set_labels(ax_e)
 
-ax_e.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
+ax_e.tick_params(axis = 'x', colors = '#890b86')
 
 ax_e.tick_params(axis = 'y', colors = 'g', labelsize = 0)
 
-ax_e.set_ylabel('Avg TrueRng',fontsize=8, fontweight =5, color = 'blue')
+ax_e.get_xaxis().set_visible(False)
 
-ax_e.tick_params(axis = 'y', colors = 'blue', labelsize = 6)
+ax_e.set_ylabel('% Chg',fontsize=8, fontweight =5, color = 'darkred')
 
 #######################################
 # S T A R T   S E N T I M E N T   A N.#
@@ -1575,21 +1682,58 @@ else:
             ax3_sim_stock3.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#f9ffb7')
 
 #######################################
-# F O O T E R  C H A R T
+# ADX FOOTER 
 #######################################
-    #hide_frame(ax_footer_1)
 
-    ax_footer_1.plot_date(df['Date'][1:], ATR, '-', label='Average True Range', color = 'blue', linewidth = 1)
+    if len(df['Date']) == len(ADX):
+        
+        ax_footer_1.plot_date(df['Date'], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 2)
+
+    else:
+
+        ax_footer_1.plot_date(df['Date'][1:], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 2)
+
+
+    if len(df['Date']) == len(PDIs):
+
+        ax_footer_1.plot_date(df['Date'], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
+
+    else:
+
+        ax_footer_1.plot_date(df['Date'][1:], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
+
+    if len(df['Date']) == len(NDIs):
+
+        ax_footer_1.plot_date(df['Date'], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
+
+    else:
+        
+        ax_footer_1.plot_date(df['Date'][1:], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
+
+
 
     set_spines(ax_footer_1)
 
     rotate_xaxis(ax_footer_1)
 
-    ax_footer_1.tick_params(axis = 'x', colors = '#890b86', labelsize = 10)
+    ax_footer_1.set_ylabel('Level', fontsize=8, fontweight =5, color = '#890b86')
 
-    ax_footer_1.set_ylabel('Avg. True Rng', fontsize=8, fontweight =5, color = 'blue')
+    ax_footer_1.set_xlabel('ADX and Directional Indicators', fontsize=8, fontweight =5, color = '#890b86')
 
-    ax_footer_1.tick_params(axis = 'y', colors = 'blue', labelsize = 6)
+    ax_footer_1.grid(True, color='lightgreen', linestyle = '-', linewidth=1)
+
+    plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
+
+    ax_footer_1.tick_params(axis = 'x', colors = '#890b86')
+
+    ax_footer_1.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
+    ax_footer_1.legend(loc=2, borderaxespad=0., fontsize = 6.0)
+
+    # ax_footer_1.fill_between(df['Date'], PDIs, NDIs, where = (PDIs > NDIs), facecolor='green', alpha=0.6)
+ 
+    # ax_footer_1.fill_between(df['Date'], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.6)
+
 
 #######################################
 # Scrape company info 

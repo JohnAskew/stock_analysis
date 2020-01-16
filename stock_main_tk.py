@@ -78,6 +78,8 @@ except:
 
     fib                           = 'y'
 
+    atradx                        = 14
+
 try:
 
     from tools_parse_config import ParseConfig
@@ -111,6 +113,8 @@ except:
     boll_weight                   = 2
 
     fib                           = 'y'
+
+    atradx                       = 14
 
 stock = ""
 
@@ -355,6 +359,15 @@ class StartPage(tk.Frame):
             a.run()
  
         #-------------------------------------#
+        def update_atradx_config():
+        #-------------------------------------#
+            variable = atradx.get()
+
+            a = ConfigUpdater('atradx',   variable)
+
+            a.run()
+
+        #-------------------------------------#
         def get_entryText():
         #-------------------------------------#
             p = eT1.get()
@@ -451,6 +464,8 @@ class StartPage(tk.Frame):
 
         fib_Tentry       = tk.StringVar()
 
+        atradx_Tentry    = tk.StringVar()
+
         
         radio_days.set("365")
          
@@ -471,23 +486,27 @@ class StartPage(tk.Frame):
         
         ema_label       = tk.Label(self,text = "  Exponential Moving Avg Periods:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 17, column = 0, sticky = 'nw')
         
-        rsiLow_label    = tk.Label(self,text = "   Relative Strength Index % low:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 18, column = 0, sticky = 'nw')
+        atradx_label    = tk.Label(self, text = "      Avg Dir Moving Index Days:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 18, column = 0, sticky = 'nw')
+
+        rsiLow_label    = tk.Label(self,text = "   Relative Strength Index % low:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 19, column = 0, sticky = 'nw')
         
-        rsiHigh_label   = tk.Label(self,text = "  Relative Strength Index % high:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 19, column = 0, sticky = 'nw')
+        rsiHigh_label   = tk.Label(self,text = "  Relative Strength Index % high:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 20, column = 0, sticky = 'nw')
         
-        pct_chg_label   = tk.Label(self, text = " Pct. Chg. Denominator (new/old):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 20, column = 0, sticky = 'nw')
+        pct_chg_label   = tk.Label(self, text = " Pct. Chg. Denominator (new/old):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 21, column = 0, sticky = 'nw')
  
-        boll_label      = tk.Label(self, text = "       Add Bollinger Bands (y/n):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 21, column = 0, sticky = 'nw')
+        boll_label      = tk.Label(self, text = "       Add Bollinger Bands (y/n):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 22, column = 0, sticky = 'nw')
 
-        boll_window_days_label  = tk.Label(self, text = "         Bollinger days (window):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 22, column = 0, sticky = 'nw')
+        boll_window_days_label  = tk.Label(self, text = "         Bollinger days (window):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 23, column = 0, sticky = 'nw')
 
-        boll_weight_label  = tk.Label(self, text = "                Bollinger weight:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 23, column = 0, sticky = 'nw')
+        boll_weight_label  = tk.Label(self, text = "                Bollinger weight:", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 24, column = 0, sticky = 'nw')
 
-        fib_label       = tk.Label(self, text = "       Add Fibonacci color (y/n):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 24, column = 0, sticky = 'nw')
+        fib_label       = tk.Label(self, text = "       Add Fibonacci color (y/n):", fg = label_fg, bg = label_bg, font = ("Courier New", "8", "bold")).grid(row = programming_variable_start_row + 25, column = 0, sticky = 'nw')
+
+
 
         a = ParseConfig()
         
-        movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks = a.run()
+        movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks, atradx = a.run()
 #######################################
 # L I S T  B O X  P R O C E S S I N G
 #######################################
@@ -568,6 +587,8 @@ class StartPage(tk.Frame):
         boll_weight_Tentry.set(boll_weight)
 
         fib_Tentry.set(fib)
+
+        atradx_Tentry.set(atradx)
         
 
         sel  = tk.Entry(self, textvariable = sEL_Tentry,   width = 5, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
@@ -600,6 +621,8 @@ class StartPage(tk.Frame):
 
         fib  = tk.Entry(self,  textvariable = fib_Tentry,      width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
 
+        atradx = tk.Entry(self,  textvariable = atradx_Tentry,  width = 3, font = ("Courier New", "9", "bold"), fg = entry_fg, bg = entry2_bg)
+
 
 
         eT1.grid( row =  4, column = 0, sticky = "e")
@@ -610,29 +633,31 @@ class StartPage(tk.Frame):
         
         separator_label2 = tk.Label(self, text = '--------- Programmable Variables ---------', bg = label_separator_bg, fg = label_separator_fg, font = ("Courier New", "9", "bold"), height = 1).grid(row = programming_variable_start_row + 12, column = 0, sticky = 'w')
         
-        mAST.grid(row = programming_variable_start_row + 13, column = 0, sticky = "e")
+        mAST.grid(   row = programming_variable_start_row + 13, column = 0, sticky = "e")
         
-        mALT.grid(row = programming_variable_start_row + 14, column = 0, sticky = "e")
+        mALT.grid(   row = programming_variable_start_row + 14, column = 0, sticky = "e")
         
-        mcST.grid(row = programming_variable_start_row + 15, column = 0, sticky = "e")
+        mcST.grid(   row = programming_variable_start_row + 15, column = 0, sticky = "e")
         
-        mcLT.grid(row = programming_variable_start_row + 16, column = 0, sticky = "e")
+        mcLT.grid(   row = programming_variable_start_row + 16, column = 0, sticky = "e")
     
-        eMAT.grid(row = programming_variable_start_row + 17, column = 0, sticky = "e")
+        eMAT.grid(   row = programming_variable_start_row + 17, column = 0, sticky = "e")
+
+        atradx.grid( row = programming_variable_start_row + 18, column = 0, sticky = "e")
         
-        rLT.grid( row = programming_variable_start_row + 18, column = 0, sticky = "e")
+        rLT.grid(    row = programming_variable_start_row + 19, column = 0, sticky = "e")
         
-        rHT.grid( row = programming_variable_start_row + 19, column = 0, sticky = "e")
+        rHT.grid(    row = programming_variable_start_row + 20, column = 0, sticky = "e")
 
-        pct_chg.grid(row = programming_variable_start_row + 20, column = 0, sticky = "e")
+        pct_chg.grid(row = programming_variable_start_row + 21, column = 0, sticky = "e")
 
-        boll.grid( row = programming_variable_start_row + 21, column = 0, sticky = "e")
+        boll.grid(   row = programming_variable_start_row + 22, column = 0, sticky = "e")
 
-        bollWD.grid( row = programming_variable_start_row + 22, column = 0, sticky = "e")
+        bollWD.grid( row = programming_variable_start_row + 23, column = 0, sticky = "e")
 
-        bollW.grid( row = programming_variable_start_row + 23, column = 0, sticky = "e")
+        bollW.grid(  row = programming_variable_start_row + 24, column = 0, sticky = "e")
 
-        fib.grid( row = programming_variable_start_row + 24, column = 0, sticky = "e")
+        fib.grid(    row = programming_variable_start_row + 25, column = 0, sticky = "e")
 
 
         buttonSEL   = tk.Button(self, text = "Add Stock", fg = button_fg, bg = button_bg, height = 0, command = lambda: update_sEL_config(stock_dict)).grid(row =14, column = 1, sticky = 'w')
@@ -649,19 +674,23 @@ class StartPage(tk.Frame):
         
         buttoneMAT  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_eMAT_config).grid(row = programming_variable_start_row + 17, column = 1, sticky = 'e')
         
-        buttonrLT   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rLT_config).grid(row  = programming_variable_start_row + 18, column = 1, sticky = 'e')
+        buttonatradx= tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_atradx_config).grid(row = programming_variable_start_row + 18, column = 1, sticky = 'e')
+
+        buttonrLT   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rLT_config).grid(row  = programming_variable_start_row + 19, column = 1, sticky = 'e')
         
-        buttonrHT   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rHT_config).grid(row  = programming_variable_start_row + 19, column = 1, sticky = 'e')
+        buttonrHT   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_rHT_config).grid(row  = programming_variable_start_row + 20, column = 1, sticky = 'e')
 
-        buttonpct   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_pct_config).grid(row  = programming_variable_start_row + 20, column = 1, sticky = 'e')
+        buttonpct   = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_pct_config).grid(row  = programming_variable_start_row + 21, column = 1, sticky = 'e')
 
-        buttonaBol  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_boll_config).grid(row = programming_variable_start_row + 21, column = 1, sticky = 'e')
+        buttonaBol  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_boll_config).grid(row = programming_variable_start_row + 22, column = 1, sticky = 'e')
 
-        buttonBolWD = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_boll_window_days_config).grid(row = programming_variable_start_row + 22, column = 1, sticky = 'e')
+        buttonBolWD = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_boll_window_days_config).grid(row = programming_variable_start_row + 23, column = 1, sticky = 'e')
 
-        buttonBolW  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_boll_weight_config).grid(row = programming_variable_start_row + 23, column = 1, sticky = 'e')
+        buttonBolW  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_boll_weight_config).grid(row = programming_variable_start_row + 24, column = 1, sticky = 'e')
 
-        buttonaFib  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_fib_config).grid(row = programming_variable_start_row + 24, column = 1, sticky = 'e')
+        buttonaFib  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_fib_config).grid(row = programming_variable_start_row + 25, column = 1, sticky = 'e')
+
+
 
 
 
@@ -753,7 +782,7 @@ button_bg    = color_gray
 
 app = SeaofSTOXapp()
 
-app.geometry("415x630")
+app.geometry("415x657")
 
 app.mainloop()
 

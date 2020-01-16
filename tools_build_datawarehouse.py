@@ -179,6 +179,8 @@ except Exception as e:
 
     fib                           = 'y'
 
+    avg_tr_adx_days               = 14
+
 try:
     
     movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks = a.run()
@@ -202,6 +204,8 @@ try:
     boll_window_days              = int(boll_window_days)
 
     boll_weight                   = int(boll_weight)
+
+    # avg_tr_adx_days               = int(avg_tr_adx_days)
 
 except Exception as e:
 
@@ -232,6 +236,8 @@ except Exception as e:
     boll_weight = 2
     
     fib = n
+
+    avg_tr_adx_days  = 14
 
 
 
