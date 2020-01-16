@@ -823,22 +823,51 @@ PDIs = []
 NDIs = []
 
 while xx < len(ATR):
-    PDI = 100 * (expPosDM[xx] / ATR[xx])
-    PDIs.append(PDI)
 
-    NDI = 100 * (expNegDM[xx] / ATR[xx])
-    NDIs.append(NDI)
+    try:
+        
+        PDI = 100 * (expPosDM[xx] / ATR[xx])
 
-    xx += 1
+    except:
+
+        PDI = 0
+
+    try:
+        
+        PDIs.append(PDI)
+
+        NDI = 100 * (expNegDM[xx] / ATR[xx])
+
+    except:
+
+        NDI = 0
+        
+    try:
+        
+        NDIs.append(NDI)
+
+        xx += 1
+
+    except:
+
+        continue
 
 xxx = 0
 
 DXs = []
 
 while xxx < (len(df_dm['Date'][1:])):
-    DX = 100 * ( abs( PDIs[xxx] - NDIs[xxx]) ) / (PDIs[xxx] + NDIs[xxx]) 
-    DXs.append(DX)
-    xxx += 1
+
+    try:
+        DX = 100 * ( abs( PDIs[xxx] - NDIs[xxx]) ) / (PDIs[xxx] + NDIs[xxx]) 
+       
+        DXs.append(DX)
+       
+        xxx += 1
+
+    except:
+
+        continue
 
 ADX = calc_ema(DXs, atradx)
 
