@@ -268,7 +268,7 @@ stock_date_adj = int(0)
 
 a = ParseConfig()
 
-movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks, atradx = a.run()
+movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks, atradx, chomf = a.run()
 ##
 ### Convert numeric config settings to integer. String vars need no conversion.
 ##
@@ -292,11 +292,71 @@ boll_weight                   = int(boll_weight)
 
 atradx                        = int(atradx)
 
+chomf                         = int(chomf)
+
 ########################################################
 # Functions (before Main Logic)
 ########################################################
 
+#-------------------------------------#
+def CHMoF(df_ch, chomf_period =chomf):
+#-------------------------------------#
+    CHMF = []
+
+    MFMs = []
+
+    MFVs = []
+
+    x    = chomf_period
+
+    while x < len(df_ch['Date']):
+        
+        PeriodVolume = 0
+        
+        volRange     = df_ch['Volume'][x - chomf_period: x]
+        
+        for eachVol in volRange:
+        
+            PeriodVolume += eachVol
+        
+        x += 1
+
+    MFMs = ( ( ( df_ch['Close'] - df_ch['Low'] ) - ( df_ch["High"] - df_ch['Close'] ) )  / ( df_ch['High'] - df_ch['Low'] ) )
+
+    MFVs = MFMs *(PeriodVolume)
+
+    y = chomf_period
+
+    while y < len(MFVs):
+       
+        PeriodVolume = 0
+       
+        volRange     = df_ch['Volume'][y - chomf_period: y]
+       
+        for eachVol in volRange:
+       
+            PeriodVolume += eachVol
+
+        consider = MFVs[y - chomf_period:y]
+       
+        tfsMFV = 0
+
+        for eachMFV in consider:
+       
+            tfsMFV += eachMFV
+            
+        tfsCMF = tfsMFV/PeriodVolume
+       
+        CHMF.append(tfsCMF)
+
+        y +=1
+    
+    return CHMF
+
+
+#-------------------------------------#
 def calc_DM(df_dm):
+#-------------------------------------#
 
     Date = df_atr['Date']
     
@@ -326,6 +386,7 @@ def calc_DM(df_dm):
     for i in range(len(Date)):
 
         moveUp = High[i] - YHigh[i]
+        
         moveDown = YLow[i] - Low[i]
 
         if ( 0 < moveUp ) and (moveUp > moveDown):
@@ -351,11 +412,13 @@ def calcDIs(df_dm):
 #-------------------------------------#
 
     PosDMs     = pd.Series([])
+    
     NegDMs     = pd.Series([])
 
     DMDate, PosDMs, NegDMs = calc_DM(df_dm)
 
     expPosDM = calc_ema(PosDMs, atradx)
+    
     expNegDM = calc_ema(NegDMs, atradx)
 
     return expPosDM, expNegDM
@@ -719,8 +782,11 @@ ax3_sim_stock2.set_visible(False)
 
 ax3_sim_stock3.set_visible(False)
 
-#ax_footer_1   =  plt.subplot2grid((plot_row, plot_col), (195,6), rowspan = 30, colspan = 20)
-ax_footer_1   =  plt.subplot2grid((plot_row, plot_col), (195,0), rowspan = 100, colspan = 20)
+ax_footer_1   =  plt.subplot2grid((plot_row, plot_col), (195,0), rowspan = 100, colspan = 9)
+
+ax_footer_2   =  plt.subplot2grid((plot_row, plot_col), (195,10), rowspan = 100, colspan = 9)
+
+
 
 ########################################################
 #      ####  #####    ###     ###  #   #      # 
@@ -1714,54 +1780,102 @@ else:
 # ADX FOOTER 
 #######################################
 
-    if len(df['Date']) == len(ADX):
-        
-        ax_footer_1.plot_date(df['Date'], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 2)
+# if len(df['Date']) == len(ADX):
+    
+#     ax_footer_1.plot_date(df['Date'], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 2)
 
-    else:
+# else:
 
-        ax_footer_1.plot_date(df['Date'][1:], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 2)
-
-
-    if len(df['Date']) == len(PDIs):
-
-        ax_footer_1.plot_date(df['Date'], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
-
-    else:
-
-        ax_footer_1.plot_date(df['Date'][1:], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
-
-    if len(df['Date']) == len(NDIs):
-
-        ax_footer_1.plot_date(df['Date'], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
-
-    else:
-        
-        ax_footer_1.plot_date(df['Date'][1:], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
+#     ax_footer_1.plot_date(df['Date'][1:], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 2)
 
 
+if len(df['Date']) == len(PDIs):
 
-    set_spines(ax_footer_1)
+    ax_footer_1.plot_date(df['Date'], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
 
-    rotate_xaxis(ax_footer_1)
+else:
 
-    ax_footer_1.set_ylabel('Level', fontsize=8, fontweight =5, color = '#890b86')
+    ax_footer_1.plot_date(df['Date'][1:], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
 
-    ax_footer_1.set_xlabel('ADX and Directional Indicators', fontsize=8, fontweight =5, color = '#890b86')
+if len(df['Date']) == len(NDIs):
 
-    ax_footer_1.grid(True, color='lightgreen', linestyle = '-', linewidth=1)
+    ax_footer_1.plot_date(df['Date'], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
 
-    plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
+else:
+    
+    ax_footer_1.plot_date(df['Date'][1:], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
 
-    ax_footer_1.tick_params(axis = 'x', colors = '#890b86')
 
-    ax_footer_1.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
-    ax_footer_1.legend(loc=2, borderaxespad=0., fontsize = 6.0)
+set_spines(ax_footer_1)
 
-    # ax_footer_1.fill_between(df['Date'], PDIs, NDIs, where = (PDIs > NDIs), facecolor='green', alpha=0.6)
- 
-    # ax_footer_1.fill_between(df['Date'], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.6)
+rotate_xaxis(ax_footer_1)
+
+ax_footer_1.set_ylabel('Level', fontsize=8, fontweight =5, color = '#890b86')
+
+ax_footer_1.set_xlabel('ADX and Directional Indicators', fontsize=8, fontweight =5, color = '#890b86')
+
+ax_footer_1.grid(True, color='lightgreen', linestyle = '-', linewidth=1)
+
+plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
+
+ax_footer_1.tick_params(axis = 'x', colors = '#890b86')
+
+ax_footer_1.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
+ax_footer_1.legend(loc=2, borderaxespad=0., fontsize = 6.0)
+
+
+ax_footer_1.fill_between(df['Date'][1:], PDIs, 0, where = ( PDIs < NDIs), facecolor='g', alpha=0.4)
+
+ax_footer_1.fill_between(df['Date'][1:], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.4)
+
+if len(df['Date']) == len(ADX):
+    
+    ax_footer_1.plot_date(df['Date'], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
+
+else:
+
+    ax_footer_1.plot_date(df['Date'][1:], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
+#######################################
+# C H A I K E N   M O N E Y  F L O W
+#######################################
+
+df_ch = df
+
+df_ch.reset_index()
+
+df_ch = df_ch[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
+
+chomf_period = 20
+
+chm_out = CHMoF(df_ch, chomf_period)
+
+ax_footer_2.set_xlabel('Chaiken Money Flow Indictor', fontsize=8, fontweight =5, color = '#890b86')
+
+ax_footer_2.set_ylabel('Money', fontsize=8, fontweight =5, color = 'g')
+
+ax_footer_2.plot(df_ch['Date'][chomf_period:], chm_out , 'blue', linewidth = 1)
+
+ax_footer_2.axhline(0, color = 'k', linewidth = 2)
+
+ax_footer_2.fill_between(df_ch['Date'][chomf_period:], chm_out, 0 , where = (np.array(chm_out) >= 0), facecolor='g', alpha=0.5, label = 'incoming money')
+
+ax_footer_2.fill_between(df_ch['Date'][chomf_period:], chm_out, 0 , where = (np.array(chm_out) <= 0), facecolor='r', alpha=0.5, label = 'outgoing money')
+
+set_spines(ax_footer_2)
+
+rotate_xaxis(ax_footer_2)
+
+ax_footer_2.grid(True, color='lightgreen', linestyle = '-', linewidth=1)
+
+plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
+
+ax_footer_2.tick_params(axis = 'x', colors = '#890b86')
+
+ax_footer_2.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
+ax_footer_2.legend(loc=2, borderaxespad=0., fontsize = 6.0)
 
 
 #######################################

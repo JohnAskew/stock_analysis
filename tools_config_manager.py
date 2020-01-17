@@ -86,6 +86,9 @@ if __name__ == "__main__":
 
         a.run()
 
+        a = ConfigUpdater('chomf',                          '14')
+
+        a.run()
 
 
 

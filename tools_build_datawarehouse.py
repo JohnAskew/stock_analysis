@@ -179,11 +179,13 @@ except Exception as e:
 
     fib                           = 'y'
 
-    avg_tr_adx_days               = 14
+    atradx                        = 14
+
+    chomf                         = 14
 
 try:
     
-    movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks = a.run()
+    movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks, atradx, chomf = a.run()
     ##
     ### Convert numeric config settings to integer. String vars need no conversion.
     ##
@@ -205,7 +207,9 @@ try:
 
     boll_weight                   = int(boll_weight)
 
-    # avg_tr_adx_days               = int(avg_tr_adx_days)
+    atradx                        = int(atradx)
+
+    chomf                         = int(chomf)
 
 except Exception as e:
 
@@ -227,17 +231,19 @@ except Exception as e:
     
     rsi_oversold = 30
     
-    pct_chg = new
+    pct_chg = 'new'
     
-    boll = n
+    boll = 'n'
     
     boll_window_days = 20
     
     boll_weight = 2
     
-    fib = n
+    fib = 'n'
 
-    avg_tr_adx_days  = 14
+    atradx  = 14
+
+    chomf   = 14
 
 
 
