@@ -301,6 +301,7 @@ chomf                         = int(chomf)
 #-------------------------------------#
 def CHMoF(df_ch, chomf_period =chomf):
 #-------------------------------------#
+
     CHMF = []
 
     MFMs = []
@@ -427,6 +428,7 @@ def calcDIs(df_dm):
 #-------------------------------------#
 def calc_true_range(df_atr):
 #-------------------------------------#
+
     Date = df_atr['Date']
     
     Open = df_atr['Open']
@@ -485,6 +487,7 @@ def popupmsg(msg):
 #-------------------------------------------------------#
 def calc_rsi(prices, n=14):
 #-------------------------------------------------------#
+
     deltas = np.diff(prices)
     
     seed = deltas[:n + 1]
@@ -534,6 +537,7 @@ def calc_rsi(prices, n=14):
 #-------------------------------------------------------#
 def moving_average(values, window):
 #-------------------------------------------------------#
+
     weights  = np.repeat(1.0, window) / window   #Numpy repeat - repeats items in array - "window" times
     
     smas = np.convolve(values, weights, 'valid') #Numpy convolve - returns the discrete, linear convolution of 2 seq.
@@ -543,6 +547,7 @@ def moving_average(values, window):
 #-------------------------------------------------------#
 def calc_ema(values,window):
 #-------------------------------------------------------#
+
     weights = np.exp(np.linspace(-1, 0., window))
     
     weights /= weights.sum()
@@ -894,22 +899,10 @@ while xx < len(ATR):
         
         PDI = 100 * (expPosDM[xx] / ATR[xx])
 
-    except:
-
-        PDI = 0
-
-    try:
-        
         PDIs.append(PDI)
 
         NDI = 100 * (expNegDM[xx] / ATR[xx])
 
-    except:
-
-        NDI = 0
-        
-    try:
-        
         NDIs.append(NDI)
 
         xx += 1
@@ -925,8 +918,11 @@ DXs = []
 while xxx < (len(df_dm['Date'][1:])):
 
     try:
-        DX = 100 * ( abs( PDIs[xxx] - NDIs[xxx]) ) / (PDIs[xxx] + NDIs[xxx]) 
-       
+
+        DX = 100 * ( ( abs( PDIs[xxx] - NDIs[xxx]) ) / 1 )
+
+        DX = 100 * ( ( abs( PDIs[xxx] - NDIs[xxx]) ) / (PDIs[xxx] + NDIs[xxx]) )
+
         DXs.append(DX)
        
         xxx += 1
@@ -1184,6 +1180,7 @@ for i in sorted(other_DETAILS_List, reverse = True,):
         col_cnt = 0
         
         cnt_DETAILS -= 0.150
+
 
 ax1_tot.set_facecolor('white')
 
@@ -1825,57 +1822,82 @@ ax_footer_1.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
 ax_footer_1.legend(loc=2, borderaxespad=0., fontsize = 6.0)
 
+if len(df_atr['Date']) == len(PDIs):
 
-ax_footer_1.fill_between(df['Date'][1:], PDIs, 0, where = ( PDIs < NDIs), facecolor='g', alpha=0.4)
-
-ax_footer_1.fill_between(df['Date'][1:], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.4)
-
-if len(df['Date']) == len(ADX):
-    
-    ax_footer_1.plot_date(df['Date'], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
+    ax_footer_1.fill_between(df_atr['Date'], PDIs, 0, where = ( PDIs < NDIs), facecolor='g', alpha=0.4)
 
 else:
 
-    ax_footer_1.plot_date(df['Date'][1:], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
+    ax_footer_1.fill_between(df_atr['Date'][1:], PDIs, 0, where = ( PDIs < NDIs), facecolor='g', alpha=0.4)
+
+if len(df_atr['Date']) == len(NDIs):
+
+    ax_footer_1.fill_between(df_atr['Date'], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.4)
+
+else:
+
+    ax_footer_1.fill_between(df_atr['Date'][1:], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.4)
+
+if len(df_atr['Date']) == len(ADX):
+    
+    ax_footer_1.plot_date(df_atr['Date'], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
+
+else:
+
+    ax_footer_1.plot_date(df_atr['Date'][1:], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
 #######################################
 # C H A I K E N   M O N E Y  F L O W
 #######################################
 
 df_ch = df
 
-df_ch.reset_index()
+try:
+    df_ch.set_index('Date')
 
-df_ch = df_ch[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
+    df_ch.reset_index()
 
-chomf_period = 20
+    df_ch = df_ch[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
 
-chm_out = CHMoF(df_ch, chomf_period)
+    chomf_period = 20
 
-ax_footer_2.set_xlabel('Chaiken Money Flow Indictor', fontsize=8, fontweight =5, color = '#890b86')
+    chm_out = CHMoF(df_ch, chomf_period)
 
-ax_footer_2.set_ylabel('Money', fontsize=8, fontweight =5, color = 'g')
+    ax_footer_2.set_xlabel('Chaiken Money Flow Indictor', fontsize=8, fontweight =5, color = '#890b86')
 
-ax_footer_2.plot(df_ch['Date'][chomf_period:], chm_out , 'blue', linewidth = 1)
+    ax_footer_2.set_ylabel('Money', fontsize=8, fontweight =5, color = 'g')
 
-ax_footer_2.axhline(0, color = 'k', linewidth = 2)
+    ax_footer_2.plot(df_ch['Date'][chomf_period:], chm_out , 'blue', linewidth = 1)
 
-ax_footer_2.fill_between(df_ch['Date'][chomf_period:], chm_out, 0 , where = (np.array(chm_out) >= 0), facecolor='g', alpha=0.5, label = 'incoming money')
+    ax_footer_2.axhline(0, color = 'k', linewidth = 2)
 
-ax_footer_2.fill_between(df_ch['Date'][chomf_period:], chm_out, 0 , where = (np.array(chm_out) <= 0), facecolor='r', alpha=0.5, label = 'outgoing money')
+    ax_footer_2.fill_between(df_ch['Date'][chomf_period:], chm_out, 0 , where = (np.array(chm_out) >= 0), facecolor='g', alpha=0.5, label = 'incoming money')
 
-set_spines(ax_footer_2)
+    ax_footer_2.fill_between(df_ch['Date'][chomf_period:], chm_out, 0 , where = (np.array(chm_out) <= 0), facecolor='r', alpha=0.5, label = 'outgoing money')
 
-rotate_xaxis(ax_footer_2)
+    set_spines(ax_footer_2)
 
-ax_footer_2.grid(True, color='lightgreen', linestyle = '-', linewidth=1)
+    rotate_xaxis(ax_footer_2)
 
-plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
+    ax_footer_2.grid(True, color='lightgreen', linestyle = '-', linewidth=1)
 
-ax_footer_2.tick_params(axis = 'x', colors = '#890b86')
+    plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
 
-ax_footer_2.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+    ax_footer_2.tick_params(axis = 'x', colors = '#890b86')
 
-ax_footer_2.legend(loc=2, borderaxespad=0., fontsize = 6.0)
+    ax_footer_2.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
+    ax_footer_2.legend(loc=2, borderaxespad=0., fontsize = 6.0)
+
+except Exception as e:
+
+    print("Unable to process Chaiken Money Flow for stock:", ax1_subject, "Skipping")
+
+    hide_frame(ax_footer_2)
+
+    set_spines(ax_footer_2)
+
+    ax_footer_2.set_title("Chaiken Money Flow unavailable for volatile stock " + ax1_subject, color = '#353335', size = 9)
+
 
 
 #######################################
@@ -1906,6 +1928,13 @@ my_title = (user, "Stock Page")
 
 fig.suptitle(my_info, va = 'top', size = 8, fontweight = 8)
 
+dir = os.getcwd()
+
 plt.show()
 
 fig.savefig(ax1_subject + '.png')
+
+
+
+
+
