@@ -26,6 +26,15 @@ class get_WIKI():
     
         stocks.append('MANH') 
 
+        stocks.append('LK')
+
+        stocks.append('BABA') 
+
+        stocks.append('HEMP') 
+
+        stocks.append('ITMC') 
+
+
         resp = requests.get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
 
         soup = bs.BeautifulSoup(resp.text, "lxml")

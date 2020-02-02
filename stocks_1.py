@@ -18,13 +18,7 @@ TTTTTTTTTT         D D
     TT  o   o      D   D    o   o
     TT  00000      D D      ooooo
 
-1. Add compamy name and information at top of presentation
-
-2. Add Percent Change chart - if there is value (let user determine denomintor
-)
-3. Yellow buy bands for RSI score < 30%.
-
-4. Convert OHLC to Heiken Ashi OHLC (See Formulaz)
+1. Convert OHLC to Heiken Ashi OHLC (See Formulaz)
 
 
 '''
@@ -158,13 +152,12 @@ try:
 
 except:
 
-    os.system('pip3 install mpl_finance')
+    os.system('pip install mpl_finance')
 
     import mpl_finance
 
 from  mpl_finance import candlestick_ohlc
 
-from mpl_toolkits.mplot3d import Axes3D
 
 from matplotlib.widgets import Button
 
@@ -559,15 +552,6 @@ def calc_ema(values,window):
     return a
 
 #-------------------------------------------------------#
-def calc_macd(x, slow=macd_periods_long_term, fast = macd_periods_short_term):
-#-------------------------------------------------------#
-    eMaSlow = calc_ema(x, slow)
-    
-    eMaFast = calc_ema(x, fast)
-    
-    return eMaSlow, eMaFast, eMaFast - eMaSlow
-
-#-------------------------------------------------------#
 def rotate_xaxis(owner):
 #-------------------------------------------------------#
     for label in owner.xaxis.get_ticklabels():
@@ -758,11 +742,14 @@ ax1_tot2 = plt.subplot2grid((plot_row,plot_col), (155,3), rowspan = 30, colspan 
 
 ax_b    = plt.subplot2grid((plot_row,plot_col), (12, 6), rowspan = 83, colspan = 6)
 
-ax_c    = plt.subplot2grid((plot_row,plot_col), (95, 6), rowspan = 20, colspan = 6, sharex = ax_b)
+ax_vol    = plt.subplot2grid((plot_row,plot_col), (137,6), rowspan = 40, colspan = 6, sharex = ax_b)
 
-ax_d    = plt.subplot2grid((plot_row,plot_col), (136,6), rowspan = 40, colspan = 6, sharex = ax_b)
+ax_adx    = plt.subplot2grid((plot_row, plot_col), (95, 6), rowspan = 20, colspan = 6, sharex = ax_b)
 
-ax_e    = plt.subplot2grid((plot_row, plot_col), (115, 6), rowspan = 20, colspan = 6, sharex = ax_b)
+ax_macd    = plt.subplot2grid((plot_row,plot_col), (116, 6), rowspan = 20, colspan = 6, sharex = ax_b)
+
+
+
 
 ax_a    = plt.subplot2grid((plot_row,plot_col), (0,  6), rowspan = 12, colspan = 6, sharex = ax_b)
 
@@ -835,7 +822,9 @@ except Exception as e:
 
 if int(stock_date_adj) >= 270:
     
-    df_ohlc = df['Adj_Close'].resample('10D').ohlc()
+#    df_ohlc = df['Adj_Close'].resample('10D').ohlc()
+    df_ohlc = df['Adj_Close'].resample('5D').ohlc()
+
 
 elif int(stock_date_adj) >= 180 and int(stock_date_adj) < 270:
     
@@ -932,6 +921,8 @@ while xxx < (len(df_dm['Date'][1:])):
         continue
 
 ADX = calc_ema(DXs, atradx)
+
+df_atr['ADX']  = [0.0] * len(df_atr['Date'])
 
 ##########################################
 # Calculate OHLC - Candlestick
@@ -1063,9 +1054,9 @@ ax1_rsi.plot([],[], linewidth = 2, label = 'UnderVal' , color = 'darkgreen', alp
 ax1_rsi.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 2, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
 
-eMaSlow, eMaFast, macd = calc_macd(df['Close'])
+# eMaSlow, eMaFast, macd = calc_macd(df['Close'])
 
-ema9 = calc_ema(macd, expma_periods)
+# ema9 = calc_ema(macd, expma_periods)
 
 macd_col_over = 'red'
 
@@ -1075,13 +1066,13 @@ rotate_xaxis(ax1_macd)
 
 set_spines(ax1_macd)
 
-ax1_macd.plot(df['Date'], macd, linewidth =2, color = 'darkred')
+ax1_macd.plot(df['Date'], df['MACD'], linewidth =2, color = 'darkred')
 
-ax1_macd.plot(df['Date'], ema9, linewidth =1, color = 'blue')
+ax1_macd.plot(df['Date'], df['EMA9'], linewidth =1, color = 'blue')
 
-ax1_macd.fill_between(df['Date'], macd - ema9, 0, alpha = 0.5, facecolor = 'darkgreen', where = (macd - ema9 > 0))
+ax1_macd.fill_between(df['Date'], df['MACD'] - df['EMA9'], 0, alpha = 0.5, facecolor = 'darkgreen', where = (df['MACD'] - df['EMA9'] > 0))
 
-ax1_macd.fill_between(df['Date'], macd - ema9, 0, alpha = 0.5, facecolor = macd_col_over, where = (macd - ema9 < 0))
+ax1_macd.fill_between(df['Date'], df['MACD'] - df['EMA9'], 0, alpha = 0.5, facecolor = macd_col_over, where = (df['MACD'] - df['EMA9'] < 0))
 
 plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
 
@@ -1094,6 +1085,21 @@ ax1_macd.set_ylabel('MACD', fontsize=8, fontweight =5, color = 'darkred')
 ax1_macd.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_periods_long_term) + ',' + str(expma_periods), linewidth = 2, color = 'darkred')
 
 ax1_macd.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'blue')
+
+
+filter2 = df['MACD'] >  df['EMA9']
+
+filter3 = df['MACD'].shift(1) <= df['EMA9'].shift(1)
+
+start_xz = ( dt.datetime.now() - dt.timedelta(days = 365))
+
+xz = df.where(filter2 & filter3).fillna(start_xz)
+
+xz = xz['Date'].where(xz['Date'] > start_xz)
+
+for i in xz.dropna(inplace = False):
+
+    ax1_macd.axvline(i, linewidth = 1,  color = 'yellow',  linestyle = 'dotted')
 
 ax1_macd.legend(bbox_to_anchor=(1.01, 1), loc=2, borderaxespad=0., fontsize = 6.0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#dde29a')
 
@@ -1136,15 +1142,11 @@ last_close = df['Close'].iloc[-1]
 # F I N A N C I A L   D E T A I L S
 #   scrunched up to fit the frame
 #--------------------------------------#
-# a = altAnalysis(ax1_subject)
-
-# company_json = a.run()
 
 hide_frame(ax1_tot)
 
 hide_frame(ax1_tot2)
 
-#Askew rec = Rectangle((autoAxis[0]-0.1,autoAxis[2]-0.2),(autoAxis[1]-autoAxis[0])+1,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
 rec = Rectangle((autoAxis[0]-0.5,autoAxis[2]-0.1),(autoAxis[1]-autoAxis[0])+5.7,(autoAxis[3]-autoAxis[2])+0.3,fill=False,lw=5, color = 'blue')
 
 rec = ax1_tot.add_patch(rec)
@@ -1363,7 +1365,7 @@ filter2 = df['MA10'] >  df['MA30']
 
 filter3 = df['MA10'].shift(1) <= df['MA30'].shift(1)
 
-start_xz = ( dt.datetime.now() - dt.timedelta(days = 365))
+start_xz = ( dt.datetime.now() - dt.timedelta(days = int(stock_date_adj)))
 
 xz = df.where(filter2 & filter3).fillna(start_xz)
 
@@ -1371,9 +1373,9 @@ xz = xz['Date'].where(xz['Date'] > start_xz)
 
 for i in xz.dropna():
 
-    ax1_ma.axvline(i, linewidth = 1,  color = 'yellow')
+    ax1_ma.axvline(i, linewidth = 1,  color = 'yellow', linestyle = 'dotted')
 
-    ax_b.axvline(i, linewidth = 1,  color = 'yellow')
+    ax_b.axvline(i, linewidth = 1,  color = 'yellow', linestyle = 'dotted')
 
 
 candlestick_ohlc(ax_b, df_ohlc.values, width = 1, colorup = 'g')
@@ -1423,76 +1425,184 @@ ax_b.legend(fontsize = 5, fancybox = True, loc = 0, markerscale = -0.5, framealp
 
 
 
-rotate_xaxis(ax_c)
+rotate_xaxis(ax_macd)
 
-set_spines(ax_c)
+set_spines(ax_macd)
 
-ax_c.plot(df['Date'], macd, linewidth =2, color = 'darkred')
+ax_macd.plot(df['Date'], df['MACD'], linewidth =2, color = 'darkred')
 
-ax_c.plot(df['Date'], ema9, linewidth =1, color = 'blue')
+ax_macd.plot(df['Date'], df['EMA9'], linewidth =1, color = 'blue')
 
-ax_c.fill_between(df['Date'], macd - ema9, 0, alpha = 0.5, facecolor = 'darkgreen', where = (macd - ema9 > 0))
+ax_macd.fill_between(df['Date'], df['MACD'] - df['EMA9'], 0, alpha = 0.5, facecolor = 'darkgreen', where = (df['MACD'] - df['EMA9'] > 0))
 
-ax_c.fill_between(df['Date'], macd - ema9, 0, alpha = 0.5, facecolor = macd_col_over, where = (macd - ema9 < 0))
+ax_macd.fill_between(df['Date'], df['MACD'] - df['EMA9'], 0, alpha = 0.5, facecolor = macd_col_over, where = (df['MACD'] - df['EMA9'] < 0))
 
 plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
 
-ax_c.tick_params(axis = 'x', colors = '#890b86')
+ax_macd.tick_params(axis = 'x', colors = '#890b86')
 
-ax_c.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+ax_macd.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
-ax_c.set_ylabel('MACD', fontsize=8, fontweight =5, color = 'darkred')
+ax_macd.set_ylabel('MACD', fontsize=8, fontweight =5, color = 'darkred')
 
-ax_c.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_periods_long_term) + ',' + str(expma_periods), linewidth = 2, color = 'darkred')
+ax_macd.plot([], label='macd ' + str(macd_periods_short_term)  + ',' + str(macd_periods_long_term) + ',' + str(expma_periods), linewidth = 2, color = 'darkred')
 
-ax_c.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'blue')
-
-ax_c.legend(loc=2, borderaxespad=0., fontsize = 6.0)
-ax_c.get_xaxis().set_visible(False)
+ax_macd.plot([], label='ema ' + str(expma_periods),  linewidth = 2, color = 'blue')
 
 
-ax_d.tick_params(axis = 'x', colors = '#890b86')
+filter2 = df['MACD'] >  df['EMA9']
 
-ax_d.plot_date(df['Date'], df['Volume'], '-', label='Volume', color = 'blue', linewidth = 1)
+filter3 = df['MACD'].shift(1) <= df['EMA9'].shift(1)
 
-ax_d.tick_params(axis = 'y', colors = 'k', labelsize = 6)
+start_xz = ( dt.datetime.now() - dt.timedelta(days = 365))
 
-rotate_xaxis(ax_d)
+xz = df.where(filter2 & filter3).fillna(start_xz)
 
-set_spines(ax_d)
+xz = xz['Date'].where(xz['Date'] > start_xz)
 
-ax_d.set_ylim(df['Volume'].min(),df['Volume'].max())
+for i in xz.dropna(inplace = False):
 
-ax_d.set_ylabel('Volume', fontsize=8, fontweight =5, color = 'b')
+    #ax1_macd.axvline(i, linewidth = 1,  color = 'yellow')
 
-ax_d.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
+    ax_macd.axvline(i, linewidth = 1,  color = 'yellow', linestyle = 'dotted')
 
 
 
-#-------------------------------------#
-# Added Signal detrend
-#-------------------------------------#
-if pct_chg == 'old':
+ax_macd.legend(loc=2, borderaxespad=0., fontsize = 6.0)
 
-    ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close']) * 100, linewidth =1, color = 'blue')
+ax_macd.get_xaxis().set_visible(False)
+
+
+ax_vol.tick_params(axis = 'x', colors = '#890b86')
+
+ax_vol.plot_date(df['Date'], df['Volume'], '-', label='Volume', color = 'blue', linewidth = 1)
+
+ax_vol.tick_params(axis = 'y', colors = 'k', labelsize = 6)
+
+rotate_xaxis(ax_vol)
+
+set_spines(ax_vol)
+
+ax_vol.set_ylim(df['Volume'].min(),df['Volume'].max())
+
+ax_vol.set_ylabel('Volume', fontsize=8, fontweight =5, color = 'b')
+
+ax_vol.fill_between(df['Date'],df['Volume'], facecolor='#00ffe8', alpha=.5)
+
+
+#######################################
+# ADX
+#######################################
+
+if len(df_atr['Date']) == len(PDIs):
+
+    ax_adx.plot_date(df_atr['Date'], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
 
 else:
-    ax_e.plot(df['Date'], ((df['Adj_Close'] - df['Adj_Close'].shift(1)) / df['Adj_Close'].shift(1)) * 100, linewidth =1, color = 'blue')
+
+    ax_adx.plot_date(df_atr['Date'][1:], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
+
+if len(df_atr['Date']) == len(NDIs):
+
+    ax_adx.plot_date(df_atr['Date'], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
+
+else:
+    
+    ax_adx.plot_date(df_atr['Date'][1:], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
+
+set_spines(ax_adx)
+
+ax_adx.set_ylabel('ADX', fontsize=8, fontweight =5, color = '#890b86')
+
+ax_adx.grid(False, color='lightgray', linestyle = '-', linewidth=1)
+
+plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
+
+ax_adx.tick_params(axis = 'x', colors = '#890b86')
+
+ax_adx.tick_params(axis = 'y', colors = 'g', labelsize = 6)
 
 
-rotate_xaxis(ax_e)
 
-set_spines(ax_e)
+# if len(df_atr['Date']) == len(PDIs):
 
-set_labels(ax_e)
+#     ax_adx.fill_between(df_atr['Date'], PDIs, 0, where = ( PDIs < NDIs), facecolor='g', alpha=0.4)
 
-ax_e.tick_params(axis = 'x', colors = '#890b86')
+# else:
 
-ax_e.tick_params(axis = 'y', colors = 'g', labelsize = 0)
+#     ax_adx.fill_between(df_atr['Date'][1:], PDIs, 0, where = ( PDIs < NDIs), facecolor='g', alpha=0.4)
 
-ax_e.get_xaxis().set_visible(False)
+# if len(df_atr['Date']) == len(NDIs):
 
-ax_e.set_ylabel('% Chg',fontsize=8, fontweight =5, color = 'darkred')
+#     ax_adx.fill_between(df_atr['Date'], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.4)
+
+# else:
+
+#     ax_adx.fill_between(df_atr['Date'][1:], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.4)
+
+if len(df_atr['Date']) == len(ADX):
+    
+    ax_adx.plot_date(df_atr['Date'], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
+
+else:
+
+    ax_adx.plot_date(df_atr['Date'][1:], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
+
+ax_adx.axhline(y=25, color = 'black', linewidth = 3, label = 'Trigger Line', linestyle = '-', alpha = .25)
+
+
+df_atr['PDIs'] = [0.0] * len(df_atr['Date'])
+df_atr['NDIs'] = [0.0] * len(df_atr['Date'])
+
+if len(df_atr['Date']) == len(PDIs):
+    df_atr['PDIs'] = PDIs
+else:
+    pdi_cnt = 1
+    for i in PDIs:
+
+        df_atr['PDIs'][pdi_cnt] = i
+        pdi_cnt += 1 
+
+if len(df_atr['Date']) == len(NDIs):
+    df_atr['NDIs'] = NDIs
+else:
+    pdi_cnt = 1
+    for i in NDIs:
+
+        df_atr['NDIs'][pdi_cnt] = i
+        pdi_cnt += 1 
+
+filter2 = df_atr['PDIs'] > df_atr['NDIs']
+
+filter3 = df_atr['PDIs'].shift(1) <= df_atr['NDIs'].shift(1)
+
+start_xz = ( dt.datetime.now() - dt.timedelta(days = int(stock_date_adj)))
+
+xz = df_atr.where(filter2 & filter3).fillna(start_xz)
+
+xz = xz['Date'].where(xz['Date'] > start_xz)
+
+for i in xz.dropna(inplace = False):
+
+    ax_adx.axvline(i, linewidth = 1,  color = 'yellow',  linestyle = 'dotted')
+
+
+filter2 = df_atr['NDIs'] > df_atr['PDIs'] 
+
+filter3 = df_atr['NDIs'].shift(1) <= df_atr['PDIs'].shift(1)
+
+start_xz = ( dt.datetime.now() - dt.timedelta(days = int(stock_date_adj)))
+
+xz = df_atr.where(filter2 & filter3).fillna(start_xz)
+
+xz = xz['Date'].where(xz['Date'] > start_xz)
+
+for i in xz.dropna(inplace = False):
+
+    ax_adx.axvline(i, linewidth = 1,  color = 'black', alpha = .50, linestyle = 'dotted')
+
+
+ax_adx.legend(loc=2, borderaxespad=0., fontsize = 6.0)
 
 #######################################
 # S T A R T   S E N T I M E N T   A N.#
@@ -1518,8 +1628,7 @@ x_plot_list = []
 y_plot_list = []
 
 for dict_plot in plots: # Per Doctor Rob, PhD, leave in the zeros
-    # if ( dict_plot['sentiment'] == 0.0 ) & ( dict_plot['subjectivity'] == 0.0 ):
-    #     continue
+
 
     x = dict_plot['sentiment'] #* 100
 
@@ -1585,9 +1694,8 @@ rotate_xaxis(ax2_sent_plots)
 
 set_spines(ax2_sent_plots)
 
-ax2_sent_plots.axvline(x = 0, linewidth = 1,  color = 'yellow')
+ax2_sent_plots.axvline(x = 0, linewidth = 1,  color = 'yellow',  linestyle = 'dotted')
 
-#ax2_sent_plots.set_ylim(0, 1)
 ax2_sent_plots.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
 
 ax2_sent_plots.tick_params(axis = 'x', colors = '#890b86', labelsize = 6)
@@ -1611,7 +1719,7 @@ rotate_xaxis(ax_sent_chart)
 
 set_spines(ax_sent_chart)
 
-ax_sent_chart.axvline(x = 0, linewidth = 2,  color = 'yellow')
+ax_sent_chart.axvline(x = 0, linewidth = 2,  color = 'yellow',  linestyle = 'dotted')
 
 #ax2_sent_plots.set_ylim(0, 1)
 ax_sent_chart.grid(True, color='lightgreen', linestyle = '-', linewidth=2)
@@ -1774,79 +1882,14 @@ else:
             ax3_sim_stock3.legend(bbox_to_anchor=(1.01, 1),fontsize = 6, fancybox = True, loc = 0, markerscale = -0.5, framealpha  = 0.5, facecolor = '#f9ffb7')
 
 #######################################
-# ADX FOOTER 
+# FOOTER 
 #######################################
 
-# if len(df['Date']) == len(ADX):
-    
-#     ax_footer_1.plot_date(df['Date'], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 2)
-
-# else:
-
-#     ax_footer_1.plot_date(df['Date'][1:], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 2)
-
-
-if len(df['Date']) == len(PDIs):
-
-    ax_footer_1.plot_date(df['Date'], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
-
-else:
-
-    ax_footer_1.plot_date(df['Date'][1:], PDIs, '-', label='Positive Indicator', color = 'darkgreen', linewidth = 2)
-
-if len(df['Date']) == len(NDIs):
-
-    ax_footer_1.plot_date(df['Date'], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
-
-else:
-    
-    ax_footer_1.plot_date(df['Date'][1:], NDIs, '-', label='Negative Indicator', color = 'red', linewidth = 2)
 
 
 
-set_spines(ax_footer_1)
-
-rotate_xaxis(ax_footer_1)
-
-ax_footer_1.set_ylabel('Level', fontsize=8, fontweight =5, color = '#890b86')
-
-ax_footer_1.set_xlabel('ADX and Directional Indicators', fontsize=8, fontweight =5, color = '#890b86')
-
-ax_footer_1.grid(True, color='lightgreen', linestyle = '-', linewidth=1)
-
-plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
-
-ax_footer_1.tick_params(axis = 'x', colors = '#890b86')
-
-ax_footer_1.tick_params(axis = 'y', colors = 'g', labelsize = 6)
-
-ax_footer_1.legend(loc=2, borderaxespad=0., fontsize = 6.0)
-
-if len(df_atr['Date']) == len(PDIs):
-
-    ax_footer_1.fill_between(df_atr['Date'], PDIs, 0, where = ( PDIs < NDIs), facecolor='g', alpha=0.4)
-
-else:
-
-    ax_footer_1.fill_between(df_atr['Date'][1:], PDIs, 0, where = ( PDIs < NDIs), facecolor='g', alpha=0.4)
-
-if len(df_atr['Date']) == len(NDIs):
-
-    ax_footer_1.fill_between(df_atr['Date'], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.4)
-
-else:
-
-    ax_footer_1.fill_between(df_atr['Date'][1:], NDIs, 0, where = ( NDIs > PDIs), facecolor='r', alpha=0.4)
-
-if len(df_atr['Date']) == len(ADX):
-    
-    ax_footer_1.plot_date(df_atr['Date'], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
-
-else:
-
-    ax_footer_1.plot_date(df_atr['Date'][1:], ADX, '-', label='Average Direction Index', color = 'blue', linewidth = 1)
 #######################################
-# C H A I K E N   M O N E Y  F L O W
+# FOOTER CHART#2 -C H A I K E N   M O N E Y  F L O W
 #######################################
 
 df_ch = df
@@ -1912,9 +1955,18 @@ my_name   = my_dict["name"]
 
 my_ticker = my_dict["ticker"]
 
-my_info   = my_dict["info"]
 
-my_info   = my_info[0:300:]
+try:
+
+    my_info   = my_dict["info"]
+
+except:
+
+    my_info = ("Company information not available")
+
+else:
+
+    my_info   = my_info[0:300:]
 
 plt.rc('ytick', labelsize=6 )    # fontsize of the tick labels
 

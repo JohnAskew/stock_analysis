@@ -17,6 +17,20 @@ except:
 
 from tkinter import ttk
 
+from tkinter.messagebox import *
+
+from tkinter.filedialog import *
+
+try:
+
+    import datetime as dt
+
+except:
+
+    os.system('pip install datetime')
+
+    import datetime as dt
+
 try:
 
     import matplotlib
@@ -148,7 +162,7 @@ def popupmsg(msg):
 #-------------------------------------#
     popup = tk.Tk()
     
-    popup.wm_title(" Warning!")
+    popup.wm_title("Attention!")
     
     label = ttk.Label(popup, text = msg)
     
@@ -213,6 +227,27 @@ class StartPage(tk.Frame):
 #-------------------------------------#  
         tk.Frame.__init__(self, parent)
 
+       
+        #-------------------------------------#
+        def saveIni():
+        #-------------------------------------#
+             Now = (dt.datetime.now().strftime('%Y%m%d_%H%M%S'))
+
+             save_config = ('config_' + Now + '.ini')
+           
+             config = configparser.ConfigParser()
+
+             config.read('config.ini')
+
+             with open(save_config, 'w') as file:
+                 config.write(file)
+
+             msg = "New config file saved as " + save_config
+
+             popupmsg(msg)
+
+
+
         #-------------------------------------#
         def update_sEL_config(stock_dict):
         #-------------------------------------#
@@ -228,7 +263,7 @@ class StartPage(tk.Frame):
 
                 if len(stock_dict) > 4:
                 
-                    stocks_listbox.delete(-1) #(len(stock_dict)))
+                    stocks_listbox.delete(-1) 
 
                 stock_list = [variable]
 
@@ -727,7 +762,7 @@ class StartPage(tk.Frame):
 
         buttonaFib  = tk.Button(self, text = "Update", fg = button_fg, bg = button_bg, command = update_fib_config).grid(  row = programming_variable_start_row + 28, column = 1, sticky = 'e')
 
-
+        buttonSaveAs= tk.Button(self, text = "Save a copy",fg = button_fg, bg = button_bg, command = saveIni).grid(row = 50, column = 0, sticky = 'w')
 
 
 
@@ -819,7 +854,7 @@ button_bg    = color_gray
 
 app = SeaofSTOXapp()
 
-app.geometry("415x727")
+app.geometry("415x752")
 
 app.mainloop()
 
