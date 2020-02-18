@@ -22,14 +22,66 @@ TTTTTTTTTT         D D
 
 
 '''
-import os
+import os, sys
+
+#-------------------------------------#
+def popupmsg(msg):
+#-------------------------------------#
+    import tkinter as tk
+
+    from tkinter import ttk
+
+    popup = tk.Tk()
+    
+    popup.wm_title(" Warning!")
+    
+    label = ttk.Label(popup, text = msg)
+    
+    label.grid(row = 3, column = 5)
+    
+    B1 = ttk.Button(popup, text = "Okay", command = lambda: popup.destroy())
+    
+    B1.grid(row = 5, column = 5)
+    
+    popup.mainloop()
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+
+os.chdir(dir_path)
+
+try:
+
+    from tools_predict_one_day import Prediction_Test
+
+except Exception as e:
+
+    msg = "Unable to load tools_predict_generic.py...Skipping predicted prices"
+    print(e)
+    popupmsg(msg)
+
+
+try:
+
+    from tools_predict_seven_days import Predict_7_days
+
+except Exception as e:
+
+    msg = "Unable to load tools_predict_generic.py...Skipping load tools_predict_seven_days"
+    print(e)
+    popupmsg(msg)
+
+
+
 
 try:
     from tools_parse_config import ParseConfig
+
 except:
+    
     msg = "Unable to find config file. Using defaults"
     
-    print(msg)
+    popupmsg(msg)
     
     movavg_window_days_short_term = 10                                         #Moving Average 10 days (quick)
     
@@ -259,6 +311,7 @@ pd.plotting.register_matplotlib_converters()
 
 stock_date_adj = int(0)
 
+
 a = ParseConfig()
 
 movavg_window_days_short_term, movavg_window_days_long_term, macd_periods_long_term, macd_periods_short_term, expma_periods, rsi_overbought, rsi_oversold, pct_chg, boll, boll_window_days, boll_weight, fib, sel_stocks, atradx, chomf = a.run()
@@ -456,26 +509,6 @@ def calc_true_range(df_atr):
 
     return Date, TR
 
-#-------------------------------------#
-def popupmsg(msg):
-#-------------------------------------#
-    import tkinter as tk
-
-    from tkinter import ttk
-
-    popup = tk.Tk()
-    
-    popup.wm_title(" Warning!")
-    
-    label = ttk.Label(popup, text = msg)
-    
-    label.grid(row = 3, column = 5)
-    
-    B1 = ttk.Button(popup, text = "Okay", command = lambda: popup.destroy())
-    
-    B1.grid(row = 5, column = 5)
-    
-    popup.mainloop()
 
 #-------------------------------------------------------#
 def calc_rsi(prices, n=14):
@@ -774,7 +807,10 @@ ax3_sim_stock2.set_visible(False)
 
 ax3_sim_stock3.set_visible(False)
 
-ax_footer_1   =  plt.subplot2grid((plot_row, plot_col), (195,0), rowspan = 100, colspan = 9)
+ax_footer_1a   =  plt.subplot2grid((plot_row, plot_col), (195,0), rowspan = 100, colspan = 4)
+
+ax_footer_1b   =  plt.subplot2grid((plot_row, plot_col), (195,5), rowspan = 100, colspan = 4)
+
 
 ax_footer_2   =  plt.subplot2grid((plot_row, plot_col), (195,10), rowspan = 100, colspan = 9)
 
@@ -806,6 +842,13 @@ except Exception as e:
 
     sys.exit(0)
 
+#-------------------------------------#
+# Save off a copy of pristine df for predictions
+#-------------------------------------#
+df_predict_1day_b4 = df[:]
+
+df_predict_7day_b4 = df[:]
+
 try:
 
     a = altAnalysis(ax1_subject)
@@ -828,11 +871,11 @@ if int(stock_date_adj) >= 270:
 
 elif int(stock_date_adj) >= 180 and int(stock_date_adj) < 270:
     
-    df_ohlc = df['Adj_Close'].resample('7D').ohlc()
+    df_ohlc = df['Adj_Close'].resample('2D').ohlc()
 
 else:
 
-    df_ohlc = df['Adj_Close'].resample('5D').ohlc()
+    df_ohlc = df['Adj_Close'].resample('1D').ohlc()
 
 #######################################
 # Calculate Average True Range
@@ -842,7 +885,7 @@ else:
 # Start with calc. True Range, first
 #-------------------------------------#
 
-df_atr = df
+df_atr = df[:]
 
 df_atr.reset_index(inplace = True)
 
@@ -1941,7 +1984,49 @@ except Exception as e:
 
     ax_footer_2.set_title("Chaiken Money Flow unavailable for volatile stock " + ax1_subject, color = '#353335', size = 9)
 
+#######################################
+# Get Predictions for stock (tools_prediction_test.py using machine learning)
+#######################################
 
+a = Predict_7_days()
+
+df_future_dates =  a.build_future(df_predict_7day_b4)
+
+df_future_dates.set_index('Date', inplace = True)
+
+print("stocks_1:-->df_future_dates\n", df_future_dates)
+
+try:
+
+    ax_footer_1b.set_xlabel('60 Day Trend predicting future trend', fontsize=8, fontweight =5, color = '#890b86')
+
+    ax_footer_1b.set_ylabel('Price', fontsize=8, fontweight =5, color = 'g')
+
+    ax_footer_1b.plot(df_future_dates,'blue', linewidth = 1)
+
+    set_spines(ax_footer_1b)
+
+    rotate_xaxis(ax_footer_1b)
+
+    ax_footer_1b.grid(True, color='lightgreen', linestyle = '-', linewidth=1)
+
+    plt.gca().yaxis.set_major_locator(mticker.MaxNLocator(prune='upper'))
+
+    ax_footer_1b.tick_params(axis = 'x', colors = '#890b86')
+
+    ax_footer_1b.tick_params(axis = 'y', colors = 'g', labelsize = 6)
+
+    ax_footer_1b.legend(loc=2, borderaxespad=0., fontsize = 6.0)
+
+except Exception as e:
+
+    print("Unable to process predictions for stock:", ax1_subject, "Skipping")
+
+    hide_frame(ax_footer_1b)
+
+    set_spines(ax_footer_1b)
+
+    ax_footer_1b.set_title("Weekly price prediction unavailable for volatile stock " + ax1_subject, color = '#353335', size = 9)
 
 #######################################
 # Scrape company info 
