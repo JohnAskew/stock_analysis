@@ -103,6 +103,16 @@ except:
 
     fib                           = 'y'
 
+try:
+
+    import mpl_finance
+
+except:
+
+    os.system('pip install mpl_finance')
+
+    import mpl_finance
+
 from formulas import *
 
 from tools_scrape import *
