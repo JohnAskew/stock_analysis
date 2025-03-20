@@ -9,3 +9,5 @@ The UI is stock_main_tk.py and allows user to customize the chart's content, suc
 
 Enter the desired stock symbol and click "Accept Choice". Click "Create Graph" to generate the presentation.
 BTW each initial daily run refreshes the datawarehouse and can take up to 10 minutes to refresh all +500 stocks.
+## Here is the expected output, this example being a "JCPenny" stock report (pre-bankruptcy).
+![JCP](https://github.com/user-attachments/assets/4ec37f23-1b42-406f-9c70-3e3263b3e612)
